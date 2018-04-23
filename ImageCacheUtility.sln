@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27428.2002
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageCacheUtility", "ImageCacheUtility\ImageCacheUtility.csproj", "{663A6E03-4941-47DB-9226-905DFAE6C2ED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{663A6E03-4941-47DB-9226-905DFAE6C2ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{663A6E03-4941-47DB-9226-905DFAE6C2ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{663A6E03-4941-47DB-9226-905DFAE6C2ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{663A6E03-4941-47DB-9226-905DFAE6C2ED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B3D03378-E09A-4717-93C9-E7F12831DF97}
+	EndGlobalSection
+EndGlobal
