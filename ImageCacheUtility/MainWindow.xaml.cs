@@ -43,6 +43,10 @@ namespace ImageCacheUtility
                 {
                     Results.Items.Add(action.ReturnEmptyFiles()[i]);
                 }
+                if(action.ReturnEmptyFiles().Count == 0)
+                {
+                    MessageBox.Show("No empty files found.", "No Empty Files");
+                }
             }
             else
             {
@@ -102,7 +106,10 @@ namespace ImageCacheUtility
                     }
                     //Console.WriteLine("List Complete");
                     CountValue.Content = action.ReturnOldFilesFullPath().Count;
-                    
+                    if(action.ReturnOldFilesFullPath().Count == 0)
+                    {
+                        MessageBox.Show("No old files found.","No Old Files");
+                    }
                 }
             }
             else
