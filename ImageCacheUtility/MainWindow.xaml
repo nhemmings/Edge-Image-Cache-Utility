@@ -21,7 +21,7 @@
             <TabItem Header="Delete Old Items">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel_Delete" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox_Delete" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" />
+                    <TextBox x:Name="ImageCachePathBox_Delete" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <DatePicker x:Name="DesiredRemovalDate" HorizontalAlignment="Left" Margin="90,55,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" SelectedDateChanged="DatePicker_SelectedDateChanged"/>
                     <Button x:Name="Delete" Content="Delete All" HorizontalAlignment="Left" Margin="10,0,0,5" VerticalAlignment="Bottom" Width="75" Height="20" Click="Delete_Click"/>
                     <Label Content="Delete Date:" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top"/>

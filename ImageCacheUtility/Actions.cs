@@ -5,23 +5,40 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Diagnostics;
 
 namespace ImageCacheUtility
 {
     class Actions
     {
-        private string[] fullPath, oldFilesFullPath;
+        //private string[] fullPath;
         private string cachePath;
         private bool returnFullPath = false;
         private DateTime oldDate;
-        private string[] oldFilesDate;
+        private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
 
-        
-        public dynamic[] FindEmptyFiles()
+
+        public void FindEmptyFiles()
         {
-            var di = new DirectoryInfo(cachePath); //create instance of directory information based on cachepath
-            FileInfo[] zeroSizeFiles = di.GetFiles("*.*", SearchOption.AllDirectories).Where(fi => fi.Length == 0).ToArray();// create a file system array and add files that are 0kbs to it
-            fullPath = zeroSizeFiles.Select(file => file.FullName).ToArray(); //add the 0kb file paths to string array
+            getAccessibleFiles(cachePath, processFile);
+
+            for (int i = 0; i < accessibleFiles.Count; i++)
+            {
+                var fi = new FileInfo(accessibleFiles[i].ToString());
+                if (fi.Length == 0)
+                {
+                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
+                    zeroSizeFiles.Add(fi.Name);
+                    fullPath.Add(fi.FullName);
+                    //Console.WriteLine(fi.FullName);
+                    
+                }
+            }
+
+        }
+
+        public List<string> ReturnEmptyFiles()
+        {
             if (returnFullPath) //toggle for full path or file name
             {
                 return fullPath; //return full path
@@ -30,7 +47,6 @@ namespace ImageCacheUtility
             {
                 return zeroSizeFiles; // return file name
             }
-
         }
 
 
@@ -39,12 +55,12 @@ namespace ImageCacheUtility
             //They must provide a path and find the empty files before deleting them
             if (fullPath is null || fullPath[0] == "")
             {
-                MessageBox.Show("Please Find Empty Files First","Find Must Be Run");
+                MessageBox.Show("Please Find Empty Files First", "Find Must Be Run");
             }
             else
-            { 
+            {
                 //passes the full path of each item in the 0kb full path array to the delete command
-                for (int i = 0; i < fullPath.Length; i++)
+                for (int i = 0; i < fullPath.Count; i++)
                 {
                     File.Delete(fullPath[i]);
                 }
@@ -55,7 +71,7 @@ namespace ImageCacheUtility
         public void SetCachePath(string path)
         {
             cachePath = path;
-            
+
         }
 
         /*public void Debug_FullPath() //Debug method 
@@ -80,12 +96,20 @@ namespace ImageCacheUtility
 
         public void FindOldFiles()
         {
-            var di = new DirectoryInfo(cachePath); //create instance of directory information based on cachepath
-            FileInfo[] filesCreatedOnOrBeforeDate = di.GetFiles("*.*", SearchOption.AllDirectories).Where(fi => fi.LastWriteTime.Date <= oldDate).ToArray(); //create a file system array and add files with a modified date of the delete date or older 
-            oldFilesFullPath = filesCreatedOnOrBeforeDate.Select(file => file.FullName).ToArray();//add the old file paths to string array
+            getAccessibleFiles(cachePath, processFile);
 
-            oldFilesDate = filesCreatedOnOrBeforeDate.Select(file => file.LastWriteTime.ToShortDateString()).ToArray(); //add the last modified date to a string array
-          
+            for (int i = 0; i < accessibleFiles.Count; i++)
+            {
+                var fi = new FileInfo(accessibleFiles[i].ToString());
+                if (fi.LastWriteTime < oldDate)
+                {
+                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
+                    oldFilesFullPath.Add(accessibleFiles.ElementAt(i));
+                    oldFilesDate.Add(fi.LastWriteTime.ToString());
+                }
+            }
+            
+
         }
 
         public void SetDate(DateTime date)
@@ -95,16 +119,17 @@ namespace ImageCacheUtility
         }
 
 
-        public string[] ReturnOldFilesFullPath()
+        public List<string> ReturnOldFilesFullPath()
         {
+            //return oldFilesFullPath;
             return oldFilesFullPath;
         }
 
-        public string[] ReturnOldFilesModifyDate()
+        public List<string> ReturnOldFilesModifyDate()
         {
             return oldFilesDate;
         }
-        
+
         public void DeleteOldFiles()
         {
             //they must find the old files before we delete them
@@ -115,7 +140,7 @@ namespace ImageCacheUtility
             else
             {
                 //passes the full path of each item in the old files full path  array to the delete command
-                for (int i = 0; i < oldFilesFullPath.Length; i++)
+                for (int i = 0; i < oldFilesFullPath.Count; i++)
                 {
                     File.Delete(oldFilesFullPath[i]);
                 }
@@ -124,7 +149,50 @@ namespace ImageCacheUtility
         }
 
 
+        //TODO better comment, Black magic occurs
+        private void getAccessibleFiles(string folder, Action<string> fileAction)
+        {
+            foreach (string file in Directory.GetFiles(folder))
+            {
+                fileAction(file);
+                //Console.WriteLine(file);
+                accessibleFiles.Add(file);
+            }
+            foreach (string subDir in Directory.GetDirectories(folder))
+            {
+                try
+                {
+                    getAccessibleFiles(subDir, fileAction);
+
+                }
+                catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+            }
+
+        }
+
+        static void processFile(string path) { }
+
+        public void ClearLists()
+        {
+            oldFilesFullPath.Clear();
+            accessibleFiles.Clear();
+            oldFilesDate.Clear();
+            fullPath.Clear();
+            zeroSizeFiles.Clear();
+        }
+
+
+        //Constructor for Lists
+        public Actions()
+        {
+            accessibleFiles = new List<string>();
+            oldFilesDate = new List<string>();
+            oldFilesFullPath = new List<string>();
+            fullPath = new List<string>();
+            zeroSizeFiles = new List<string>();            
+        }
 
 
     }
 }
+

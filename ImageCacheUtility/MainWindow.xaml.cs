@@ -32,16 +32,16 @@ namespace ImageCacheUtility
             //they must have a cache path or it will not run
             if ((ImageCachePathBox.Text != null) && (ImageCachePathBox.Text != ""))
             {
-
-                Results.Items.Clear();  //clear list
+                action.ClearLists();       //clear lists of files in action
+                Results.Items.Clear();  //clear listbox
                 action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
                 action.FindEmptyFiles();    
                 //action.Debug_FullPath();
                 
                 //add the returned empty files (names or full path) to the list element 
-                for(int i =0; i < action.FindEmptyFiles().Length; i++)
+                for(int i =0; i < action.ReturnEmptyFiles().Count; i++)
                 {
-                    Results.Items.Add(action.FindEmptyFiles()[i]);
+                    Results.Items.Add(action.ReturnEmptyFiles()[i]);
                 }
             }
             else
@@ -57,6 +57,7 @@ namespace ImageCacheUtility
             {
                 action.FixEmptyFiles();
                 Results.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
+                action.ClearLists(); //clear list of files in action
             }
             else
             {
@@ -88,18 +89,20 @@ namespace ImageCacheUtility
                 }
                 else
                 {
+                    action.ClearLists(); // clear list of files in action
                     //Console.WriteLine("set date");
                     action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
                     action.FindOldFiles();
                    // Console.WriteLine("Generate List");
 
                     //add old files full paths to the list along with last modified date
-                    for (int i = 0; i < action.ReturnOldFilesFullPath().Length; i++)
+                    for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
                     {
                         Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
                     }
                     //Console.WriteLine("List Complete");
-                    CountValue.Content = action.ReturnOldFilesFullPath().Length;
+                    CountValue.Content = action.ReturnOldFilesFullPath().Count;
+                    
                 }
             }
             else
@@ -121,6 +124,7 @@ namespace ImageCacheUtility
         {
             action.DeleteOldFiles(); //delete old files
             Results_Delete.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
+            action.ClearLists(); // clear list of files in action
         }
     }
 }
