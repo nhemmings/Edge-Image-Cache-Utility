@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+
 namespace ImageCacheUtility
 {
     /// <summary>
@@ -123,10 +124,19 @@ namespace ImageCacheUtility
 
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            Delete.IsEnabled = false;
-            action.DeleteOldFiles(); //delete old files
-            Results_Delete.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
-            action.ClearLists(); // clear list of files in action
+            //Message box to display size of files being deleted and allows the operator to back out before the delete occurs
+            MessageBoxResult messageBoxResult = MessageBox.Show(
+                    "You are about to delete " + action.ReturnTotalBytes() + " " + action.ReturnFileSizeLabel() +
+                    "\n would you like to proceed?","Delete Prompt",MessageBoxButton.YesNo);
+            
+            //If they chose to proceed with the delete goes through delete process and clears lists
+            if (messageBoxResult == MessageBoxResult.Yes)
+            { 
+                Delete.IsEnabled = false;
+                action.DeleteOldFiles(); //delete old files
+                Results_Delete.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
+                action.ClearLists(); // clear list of files in action
+            }
         }
 
         /**

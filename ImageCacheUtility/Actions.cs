@@ -16,6 +16,8 @@ namespace ImageCacheUtility
         private bool returnFullPath = false;
         private DateTime oldDate;
         private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
+        private long totalFileSize;
+        private string fileSizeLabel;
 
         public void FindEmptyFiles()
         {
@@ -102,12 +104,14 @@ namespace ImageCacheUtility
                 var fi = new FileInfo(accessibleFiles[i].ToString());
                 if (fi.LastWriteTime < oldDate)
                 {
+                    totalFileSize += fi.Length;
                     //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
                     oldFilesFullPath.Add(accessibleFiles.ElementAt(i));
                     oldFilesDate.Add(fi.LastWriteTime.ToString());
                 }
             }
-            
+            convertBytesLabel();
+            convertBytes();
 
         }
 
@@ -120,7 +124,6 @@ namespace ImageCacheUtility
 
         public List<string> ReturnOldFilesFullPath()
         {
-            //return oldFilesFullPath;
             return oldFilesFullPath;
         }
 
@@ -181,8 +184,8 @@ namespace ImageCacheUtility
         }
 
 
-        //Constructor for Lists
-        public Actions()
+        
+        public Actions() //Constructor for Lists
         {
             accessibleFiles = new List<string>();
             oldFilesDate = new List<string>();
@@ -192,6 +195,53 @@ namespace ImageCacheUtility
         }
 
 
+        private void convertBytesLabel() //Sets the file size label 
+        {
+            if (totalFileSize < 1000)
+            {
+                fileSizeLabel = "bytes";
+            }
+            else if (totalFileSize > 1000 && totalFileSize < 1000000)
+            {
+                fileSizeLabel = "KB";
+            }
+            else if(totalFileSize > 1000000 && totalFileSize < 1000000000)
+            {
+                fileSizeLabel = "MB";
+            }
+            else if(totalFileSize > 1000000000)
+            {
+                fileSizeLabel = "GB";
+            }
+        }
+
+        private void convertBytes() //converts the byte number to match the updated label
+        {
+            switch (fileSizeLabel)
+            {
+                case "bytes":
+                    return;
+                case "KB":
+                    totalFileSize = (totalFileSize / 1000);
+                    return;
+                case "MB":
+                    totalFileSize = (totalFileSize / 1000000);
+                    return;
+                case "GB":
+                    totalFileSize = (totalFileSize / 1000000000);
+                    return;
+            }
+        }
+
+        public string ReturnTotalBytes()
+        {
+            return totalFileSize.ToString();
+        }
+
+        public string ReturnFileSizeLabel()
+        {
+            return fileSizeLabel;
+        }
     }
 }
 
