@@ -109,6 +109,7 @@ namespace ImageCacheUtility
                     //Console.WriteLine("List Complete");                   
                 }
                 CountValue.Content = action.ReturnOldFilesFullPath().Count;
+                FileSizeValue.Content = action.ReturnTotalBytes() + " " + action.ReturnFileSizeLabel();
             }
         }
 
