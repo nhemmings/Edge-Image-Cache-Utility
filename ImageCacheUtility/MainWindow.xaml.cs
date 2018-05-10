@@ -31,23 +31,24 @@ namespace ImageCacheUtility
         {
             if (!checkCacheExistsWithPrompt())
                 return;
-            
+
             action.ClearLists();       //clear lists of files in action
             Results.Items.Clear();  //clear listbox
             action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-            action.FindEmptyFiles();    
+            action.FindEmptyFiles();
             //action.Debug_FullPath();
-                
-            //add the returned empty files (names or full path) to the list element 
-            for(int i =0; i < action.ReturnEmptyFiles().Count; i++)
-            {
-                Results.Items.Add(action.ReturnEmptyFiles()[i]);
-            }
-            if(action.ReturnEmptyFiles().Count == 0)
+            if (action.ReturnEmptyFiles().Count == 0)
             {
                 MessageBox.Show("No empty files found.", "No Empty Files");
             }
-
+            else { 
+                //add the returned empty files (names or full path) to the list element 
+                for (int i = 0; i < action.ReturnEmptyFiles().Count; i++)
+                {
+                    Results.Items.Add(action.ReturnEmptyFiles()[i]);
+                }
+                Fix.IsEnabled = true;
+            }
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
@@ -68,8 +69,9 @@ namespace ImageCacheUtility
         private void Find_Delete_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
-            if (!checkCacheExistsWithPrompt())
+            if (!checkCacheExistsWithPrompt())               
                 return;
+            
 
             Results_Delete.Items.Clear(); //clear list
             //Console.WriteLine("Cleared");
@@ -78,7 +80,7 @@ namespace ImageCacheUtility
             //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
 
             //check for date in past or it will not run todays date will delete entire cache probably not what they want
-            if (DesiredRemovalDate.DisplayDate.Date  >= System.DateTime.Now.Date)
+            if (DesiredRemovalDate.DisplayDate.Date >= System.DateTime.Now.Date)
             {
                 MessageBox.Show("The delete date is today's date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
             }
@@ -90,27 +92,32 @@ namespace ImageCacheUtility
                 action.FindOldFiles();
                 // Console.WriteLine("Generate List");
 
-                //add old files full paths to the list along with last modified date
-                for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                if (action.ReturnOldFilesFullPath().Count == 0)
                 {
-                    Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
+                    Delete.IsEnabled = false;
+                    MessageBox.Show("No old files found.", "No Old Files");
                 }
-                //Console.WriteLine("List Complete");
+                else { 
+                    //add old files full paths to the list along with last modified date
+                    for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                    {
+                        Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
+                    }
+                    Delete.IsEnabled = true;
+                    //Console.WriteLine("List Complete");                   
+                }
                 CountValue.Content = action.ReturnOldFilesFullPath().Count;
-                if(action.ReturnOldFilesFullPath().Count == 0)
-                {
-                    MessageBox.Show("No old files found.","No Old Files");
-                }
             }
         }
 
         private void DatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             //date picker listener listens for the date picker to be changed and updates the display date to match
+            Delete.IsEnabled = false;
             var picker = sender as DatePicker;
             DateTime? date = picker.SelectedDate;
             DesiredRemovalDate.DisplayDate = date.Value;
-            
+
         }
 
         private void Delete_Click(object sender, RoutedEventArgs e)
@@ -124,7 +131,10 @@ namespace ImageCacheUtility
          * TextBox TextChanged listener for ImageCachePath text boxes.
          * Synchronizes CachePath property and all ImageCachePath TextBoxes any time the user modifies a path field
          */
-        private void cachePathTextChanged(object sender, TextChangedEventArgs e) {
+        private void cachePathTextChanged(object sender, TextChangedEventArgs e)
+        {
+            Fix.IsEnabled = false;
+            Delete.IsEnabled = false;
             TextBox textBox = sender as TextBox;
             action.CachePath = textBox.Text;
             ImageCachePathBox.Text = action.CachePath;
@@ -134,7 +144,8 @@ namespace ImageCacheUtility
         /**
          * Check if current cache path is a valid, accessible directory.
          */
-        private bool checkCacheExists() {
+        private bool checkCacheExists()
+        {
             if (String.IsNullOrEmpty(action.CachePath))
                 return false;
 
@@ -146,13 +157,20 @@ namespace ImageCacheUtility
          * Displays a dialog box prompting the user to enter a cache path if the path property is null or empty.
          * Displays a dialog box informing the user that the provided path is not accessible.
          */
-        private bool checkCacheExistsWithPrompt() {
-            if (String.IsNullOrEmpty(action.CachePath)) {
+        private bool checkCacheExistsWithPrompt()
+        {
+            if (String.IsNullOrEmpty(action.CachePath))
+            {
+                Fix.IsEnabled = false;
+                Delete.IsEnabled = false;
                 MessageBox.Show("Please insert a cache path.", "Cache Path Empty");
                 return false;
             }
-               
-            if (!System.IO.Directory.Exists(action.CachePath)) {
+
+            if (!System.IO.Directory.Exists(action.CachePath))
+            {
+                Fix.IsEnabled = false;
+                Delete.IsEnabled = false;
                 MessageBox.Show("The cache could not be found,\nor the user does not have read access.", "Cache Inaccessible");
                 return false;
             }
@@ -161,3 +179,4 @@ namespace ImageCacheUtility
         }
     }
 }
+
