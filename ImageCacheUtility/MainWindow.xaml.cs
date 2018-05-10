@@ -56,6 +56,7 @@ namespace ImageCacheUtility
             if (!checkCacheExistsWithPrompt())
                 return;
 
+            Fix.IsEnabled = false;
             action.FixEmptyFiles();
             Results.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
             action.ClearLists(); //clear list of files in action
@@ -122,6 +123,7 @@ namespace ImageCacheUtility
 
         private void Delete_Click(object sender, RoutedEventArgs e)
         {
+            Delete.IsEnabled = false;
             action.DeleteOldFiles(); //delete old files
             Results_Delete.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
             action.ClearLists(); // clear list of files in action
