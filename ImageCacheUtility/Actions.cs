@@ -12,15 +12,14 @@ namespace ImageCacheUtility
     class Actions
     {
         //private string[] fullPath;
-        private string cachePath;
+        public string CachePath { get; set; }
         private bool returnFullPath = false;
         private DateTime oldDate;
         private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
 
-
         public void FindEmptyFiles()
         {
-            getAccessibleFiles(cachePath, processFile);
+            getAccessibleFiles(CachePath, processFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
@@ -70,7 +69,7 @@ namespace ImageCacheUtility
 
         public void SetCachePath(string path)
         {
-            cachePath = path;
+            CachePath = path;
 
         }
 
@@ -96,7 +95,7 @@ namespace ImageCacheUtility
 
         public void FindOldFiles()
         {
-            getAccessibleFiles(cachePath, processFile);
+            getAccessibleFiles(CachePath, processFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
