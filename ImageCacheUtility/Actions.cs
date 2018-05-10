@@ -11,11 +11,11 @@ namespace ImageCacheUtility
 {
     class Actions
     {
-        //private string[] fullPath;
         private string cachePath;
         private bool returnFullPath = false;
         private DateTime oldDate;
         private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
+        private bool pathAccessible;
 
 
         public void FindEmptyFiles()
@@ -152,20 +152,29 @@ namespace ImageCacheUtility
         //TODO better comment, Black magic occurs
         private void getAccessibleFiles(string folder, Action<string> fileAction)
         {
-            foreach (string file in Directory.GetFiles(folder))
-            {
-                fileAction(file);
-                //Console.WriteLine(file);
-                accessibleFiles.Add(file);
-            }
-            foreach (string subDir in Directory.GetDirectories(folder))
-            {
-                try
+            try {
+                foreach (string file in Directory.GetFiles(folder))
                 {
-                    getAccessibleFiles(subDir, fileAction);
-
+                    fileAction(file);
+                    //Console.WriteLine(file);
+                    accessibleFiles.Add(file);
                 }
-                catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+            
+                foreach (string subDir in Directory.GetDirectories(folder))
+                {
+                    try
+                    {
+                        getAccessibleFiles(subDir, fileAction);
+
+                    }
+                    catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+                }
+                pathAccessible = true;
+            }
+            catch (Exception ex) {
+                Trace.TraceError(ex.ToString());
+                MessageBox.Show("Could not access cache path " + cachePath, "Path Inaccessible");
+                pathAccessible = false;
             }
 
         }
@@ -189,9 +198,14 @@ namespace ImageCacheUtility
             oldFilesDate = new List<string>();
             oldFilesFullPath = new List<string>();
             fullPath = new List<string>();
-            zeroSizeFiles = new List<string>();            
+            zeroSizeFiles = new List<string>();
+            pathAccessible = false;
         }
 
+        public bool PathAccessible()
+        {
+            return pathAccessible;
+        }
 
     }
 }

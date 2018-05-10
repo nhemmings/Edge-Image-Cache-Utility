@@ -35,18 +35,24 @@ namespace ImageCacheUtility
                 action.ClearLists();       //clear lists of files in action
                 Results.Items.Clear();  //clear listbox
                 action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-                action.FindEmptyFiles();    
+                action.FindEmptyFiles();
                 //action.Debug_FullPath();
-                
+
                 //add the returned empty files (names or full path) to the list element 
-                for(int i =0; i < action.ReturnEmptyFiles().Count; i++)
-                {
-                    Results.Items.Add(action.ReturnEmptyFiles()[i]);
+                if (action.PathAccessible()) { 
+
+                    if (action.ReturnEmptyFiles().Count == 0)
+                    {
+                        MessageBox.Show("No empty files found.", "No Empty Files");
+                    }
+                    else {
+                        for (int i = 0; i < action.ReturnEmptyFiles().Count; i++)
+                        {
+                            Results.Items.Add(action.ReturnEmptyFiles()[i]);
+                        }
+                    }
                 }
-                if(action.ReturnEmptyFiles().Count == 0)
-                {
-                    MessageBox.Show("No empty files found.", "No Empty Files");
-                }
+				
             }
             else
             {
@@ -83,11 +89,11 @@ namespace ImageCacheUtility
                 Results_Delete.Items.Clear(); //clear list
                 //Console.WriteLine("Cleared");
                 action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
-               // Console.WriteLine(DesiredRemovalDate.DisplayDate);
-                //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
+                                                                    // Console.WriteLine(DesiredRemovalDate.DisplayDate);
+                                                                    //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
 
                 //check for date in past or it will not run todays date will delete entire cache probably not what they want
-                if (DesiredRemovalDate.DisplayDate.Date  >= System.DateTime.Now.Date)
+                if (DesiredRemovalDate.DisplayDate.Date >= System.DateTime.Now.Date)
                 {
                     MessageBox.Show("The delete date is todays date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
                 }
@@ -97,18 +103,24 @@ namespace ImageCacheUtility
                     //Console.WriteLine("set date");
                     action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
                     action.FindOldFiles();
-                   // Console.WriteLine("Generate List");
+                    // Console.WriteLine("Generate List");
 
                     //add old files full paths to the list along with last modified date
-                    for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                    if (action.PathAccessible())
                     {
-                        Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
-                    }
-                    //Console.WriteLine("List Complete");
-                    CountValue.Content = action.ReturnOldFilesFullPath().Count;
-                    if(action.ReturnOldFilesFullPath().Count == 0)
-                    {
-                        MessageBox.Show("No old files found.","No Old Files");
+                        if (action.ReturnOldFilesFullPath().Count == 0)
+                        {
+                            MessageBox.Show("No old files found.", "No Old Files");
+                        }
+                        else { 
+                            for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                            {
+                                Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
+                            }
+                            //Console.WriteLine("List Complete");
+                            
+                        }
+                        CountValue.Content = action.ReturnOldFilesFullPath().Count;
                     }
                 }
             }
