@@ -29,50 +29,35 @@ namespace ImageCacheUtility
 
         private void Find_Click(object sender, RoutedEventArgs e)
         {
-            //they must have a cache path or it will not run
-            if ((ImageCachePathBox.Text != null) && (ImageCachePathBox.Text != ""))
+            if (!checkCacheExistsWithPrompt())
+                return;
+            
+            action.ClearLists();       //clear lists of files in action
+            Results.Items.Clear();  //clear listbox
+            action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
+            action.FindEmptyFiles();    
+            //action.Debug_FullPath();
+                
+            //add the returned empty files (names or full path) to the list element 
+            for(int i =0; i < action.ReturnEmptyFiles().Count; i++)
             {
-                action.ClearLists();       //clear lists of files in action
-                Results.Items.Clear();  //clear listbox
-                action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-                action.FindEmptyFiles();
-                //action.Debug_FullPath();
-
-                //add the returned empty files (names or full path) to the list element 
-                if (action.PathAccessible()) { 
-
-                    if (action.ReturnEmptyFiles().Count == 0)
-                    {
-                        MessageBox.Show("No empty files found.", "No Empty Files");
-                    }
-                    else {
-                        for (int i = 0; i < action.ReturnEmptyFiles().Count; i++)
-                        {
-                            Results.Items.Add(action.ReturnEmptyFiles()[i]);
-                        }
-                    }
-                }
-				
+                Results.Items.Add(action.ReturnEmptyFiles()[i]);
             }
-            else
+            if(action.ReturnEmptyFiles().Count == 0)
             {
-                MessageBox.Show("Please insert a cache path.", "Cache Path Empty");
+                MessageBox.Show("No empty files found.", "No Empty Files");
             }
+
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
         {
-            //they must have a cache path or it will not run
-            if ((ImageCachePathBox.Text != null) && (ImageCachePathBox.Text != ""))
-            {
-                action.FixEmptyFiles();
-                Results.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
-                action.ClearLists(); //clear list of files in action
-            }
-            else
-            {
-                MessageBox.Show("Please insert a cache path.", "Cache Path Empty");
-            }
+            if (!checkCacheExistsWithPrompt())
+                return;
+
+            action.FixEmptyFiles();
+            Results.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
+            action.ClearLists(); //clear list of files in action
         }
 
         private void CheckBox_Changed(object sender, RoutedEventArgs e)
@@ -83,50 +68,39 @@ namespace ImageCacheUtility
         private void Find_Delete_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
-            if ((ImageCachePathBox_Delete.Text != null) && (ImageCachePathBox_Delete.Text != ""))
+            if (!checkCacheExistsWithPrompt())
+                return;
+
+            Results_Delete.Items.Clear(); //clear list
+            //Console.WriteLine("Cleared");
+            action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
+            // Console.WriteLine(DesiredRemovalDate.DisplayDate);
+            //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
+
+            //check for date in past or it will not run todays date will delete entire cache probably not what they want
+            if (DesiredRemovalDate.DisplayDate.Date  >= System.DateTime.Now.Date)
             {
-
-                Results_Delete.Items.Clear(); //clear list
-                //Console.WriteLine("Cleared");
-                action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
-                                                                    // Console.WriteLine(DesiredRemovalDate.DisplayDate);
-                                                                    //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
-
-                //check for date in past or it will not run todays date will delete entire cache probably not what they want
-                if (DesiredRemovalDate.DisplayDate.Date >= System.DateTime.Now.Date)
-                {
-                    MessageBox.Show("The delete date is todays date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
-                }
-                else
-                {
-                    action.ClearLists(); // clear list of files in action
-                    //Console.WriteLine("set date");
-                    action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
-                    action.FindOldFiles();
-                    // Console.WriteLine("Generate List");
-
-                    //add old files full paths to the list along with last modified date
-                    if (action.PathAccessible())
-                    {
-                        if (action.ReturnOldFilesFullPath().Count == 0)
-                        {
-                            MessageBox.Show("No old files found.", "No Old Files");
-                        }
-                        else { 
-                            for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
-                            {
-                                Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
-                            }
-                            //Console.WriteLine("List Complete");
-                            
-                        }
-                        CountValue.Content = action.ReturnOldFilesFullPath().Count;
-                    }
-                }
+                MessageBox.Show("The delete date is today's date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
             }
             else
             {
-                MessageBox.Show("Please insert a cache path.", "Cache Path Empty");
+                action.ClearLists(); // clear list of files in action
+                //Console.WriteLine("set date");
+                action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
+                action.FindOldFiles();
+                // Console.WriteLine("Generate List");
+
+                //add old files full paths to the list along with last modified date
+                for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                {
+                    Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: " + action.ReturnOldFilesModifyDate()[i]);
+                }
+                //Console.WriteLine("List Complete");
+                CountValue.Content = action.ReturnOldFilesFullPath().Count;
+                if(action.ReturnOldFilesFullPath().Count == 0)
+                {
+                    MessageBox.Show("No old files found.","No Old Files");
+                }
             }
         }
 
@@ -144,6 +118,46 @@ namespace ImageCacheUtility
             action.DeleteOldFiles(); //delete old files
             Results_Delete.Items.Clear(); //clear the list after deleting them, makes it look like the app actually did something.
             action.ClearLists(); // clear list of files in action
+        }
+
+        /**
+         * TextBox TextChanged listener for ImageCachePath text boxes.
+         * Synchronizes CachePath property and all ImageCachePath TextBoxes any time the user modifies a path field
+         */
+        private void cachePathTextChanged(object sender, TextChangedEventArgs e) {
+            TextBox textBox = sender as TextBox;
+            action.CachePath = textBox.Text;
+            ImageCachePathBox.Text = action.CachePath;
+            ImageCachePathBox_Delete.Text = action.CachePath;
+        }
+
+        /**
+         * Check if current cache path is a valid, accessible directory.
+         */
+        private bool checkCacheExists() {
+            if (String.IsNullOrEmpty(action.CachePath))
+                return false;
+
+            return System.IO.Directory.Exists(action.CachePath);
+        }
+
+        /**
+         * Check if current cache path is a valid, accessible directory.
+         * Displays a dialog box prompting the user to enter a cache path if the path property is null or empty.
+         * Displays a dialog box informing the user that the provided path is not accessible.
+         */
+        private bool checkCacheExistsWithPrompt() {
+            if (String.IsNullOrEmpty(action.CachePath)) {
+                MessageBox.Show("Please insert a cache path.", "Cache Path Empty");
+                return false;
+            }
+               
+            if (!System.IO.Directory.Exists(action.CachePath)) {
+                MessageBox.Show("The cache could not be found,\nor the user does not have read access.", "Cache Inaccessible");
+                return false;
+            }
+
+            return true;
         }
     }
 }

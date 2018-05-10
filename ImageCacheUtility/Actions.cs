@@ -11,16 +11,15 @@ namespace ImageCacheUtility
 {
     class Actions
     {
-        private string cachePath;
+        //private string[] fullPath;
+        public string CachePath { get; set; }
         private bool returnFullPath = false;
         private DateTime oldDate;
         private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
-        private bool pathAccessible;
-
 
         public void FindEmptyFiles()
         {
-            getAccessibleFiles(cachePath, processFile);
+            getAccessibleFiles(CachePath, processFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
@@ -70,7 +69,7 @@ namespace ImageCacheUtility
 
         public void SetCachePath(string path)
         {
-            cachePath = path;
+            CachePath = path;
 
         }
 
@@ -96,7 +95,7 @@ namespace ImageCacheUtility
 
         public void FindOldFiles()
         {
-            getAccessibleFiles(cachePath, processFile);
+            getAccessibleFiles(CachePath, processFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
@@ -152,29 +151,20 @@ namespace ImageCacheUtility
         //TODO better comment, Black magic occurs
         private void getAccessibleFiles(string folder, Action<string> fileAction)
         {
-            try {
-                foreach (string file in Directory.GetFiles(folder))
-                {
-                    fileAction(file);
-                    //Console.WriteLine(file);
-                    accessibleFiles.Add(file);
-                }
-            
-                foreach (string subDir in Directory.GetDirectories(folder))
-                {
-                    try
-                    {
-                        getAccessibleFiles(subDir, fileAction);
-
-                    }
-                    catch (Exception ex) { Trace.TraceError(ex.ToString()); }
-                }
-                pathAccessible = true;
+            foreach (string file in Directory.GetFiles(folder))
+            {
+                fileAction(file);
+                //Console.WriteLine(file);
+                accessibleFiles.Add(file);
             }
-            catch (Exception ex) {
-                Trace.TraceError(ex.ToString());
-                MessageBox.Show("Could not access cache path " + cachePath, "Path Inaccessible");
-                pathAccessible = false;
+            foreach (string subDir in Directory.GetDirectories(folder))
+            {
+                try
+                {
+                    getAccessibleFiles(subDir, fileAction);
+
+                }
+                catch (Exception ex) { Trace.TraceError(ex.ToString()); }
             }
 
         }
@@ -198,14 +188,9 @@ namespace ImageCacheUtility
             oldFilesDate = new List<string>();
             oldFilesFullPath = new List<string>();
             fullPath = new List<string>();
-            zeroSizeFiles = new List<string>();
-            pathAccessible = false;
+            zeroSizeFiles = new List<string>();            
         }
 
-        public bool PathAccessible()
-        {
-            return pathAccessible;
-        }
 
     }
 }

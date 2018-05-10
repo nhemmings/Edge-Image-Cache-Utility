@@ -11,9 +11,9 @@
             <TabItem Header="Clear 0 KB Files">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" />
+                    <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="cachePathTextChanged"/>
                     <Button x:Name="Find" Content="Find" HorizontalAlignment="Left" Margin="125,50,0,0" VerticalAlignment="Top" Width="75" Click="Find_Click"/>
-                    <Button x:Name="Fix" Content="Fix" HorizontalAlignment="Left" Margin="275,50,0,0" VerticalAlignment="Top" Width="75" Click="Fix_Click"/>
+                    <Button x:Name="Fix" Content="Fix" HorizontalAlignment="Left" Margin="275,50,0,0" VerticalAlignment="Top" Width="75" Click="Fix_Click" IsEnabled="False"/>
                     <ListBox x:Name="Results" HorizontalAlignment="Stretch" Margin="10,100,10,30" VerticalAlignment="Stretch"/>
                     <CheckBox Content="Return Full Path" HorizontalAlignment="Right" Margin="0,0,10,7" VerticalAlignment="Bottom" Checked="CheckBox_Changed" Unchecked="CheckBox_Changed"/>
                 </Grid>
@@ -21,9 +21,9 @@
             <TabItem Header="Delete Old Items">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel_Delete" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox_Delete" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox x:Name="ImageCachePathBox_Delete" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="cachePathTextChanged"/>
                     <DatePicker x:Name="DesiredRemovalDate" HorizontalAlignment="Left" Margin="90,55,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" SelectedDateChanged="DatePicker_SelectedDateChanged"/>
-                    <Button x:Name="Delete" Content="Delete All" HorizontalAlignment="Left" Margin="10,0,0,5" VerticalAlignment="Bottom" Width="75" Height="20" Click="Delete_Click"/>
+                    <Button x:Name="Delete" Content="Delete All" HorizontalAlignment="Left" Margin="10,0,0,5" VerticalAlignment="Bottom" Width="75" Height="20" Click="Delete_Click" IsEnabled="False"/>
                     <Label Content="Delete Date:" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top"/>
                     <ListBox x:Name="Results_Delete" HorizontalAlignment="Stretch" Margin="10,100,10,30" VerticalAlignment="Stretch"/>
                     <Button x:Name="Find_Delete" Content="Find" HorizontalAlignment="Left" Margin="205,57,0,0" VerticalAlignment="Top" Width="75" Click="Find_Delete_Click"/>
