@@ -132,6 +132,7 @@ namespace ImageCacheUtility
             return oldFilesDate;
         }
 
+
         public void DeleteOldFiles()
         {
             //they must find the old files before we delete them
