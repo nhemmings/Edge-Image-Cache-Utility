@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Diagnostics;
 
+
 namespace ImageCacheUtility
 {
     class Actions
@@ -15,7 +16,7 @@ namespace ImageCacheUtility
         public string CachePath { get; set; }
         private bool returnFullPath = false;
         private DateTime oldDate;
-        private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
+        private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles, inaccessibleFiles;
         private long totalFileSize;
         private string fileSizeLabel;
 
@@ -112,7 +113,7 @@ namespace ImageCacheUtility
             }
             convertBytesLabel();
             convertBytes();
-
+            
         }
 
         public void SetDate(DateTime date)
@@ -131,6 +132,12 @@ namespace ImageCacheUtility
         {
             return oldFilesDate;
         }
+
+        public List<string> ReturnInaccessibleFiles()
+        {
+            return inaccessibleFiles;
+        }
+
 
 
         public void DeleteOldFiles()
@@ -157,23 +164,31 @@ namespace ImageCacheUtility
         {
             foreach (string file in Directory.GetFiles(folder))
             {
-                fileAction(file);
-                //Console.WriteLine(file);
-                accessibleFiles.Add(file);
+                try
+                {
+                    File.Open(file, FileMode.Open).Close();
+                    fileAction(file);
+                    //Console.WriteLine(file);
+                    accessibleFiles.Add(file);
+                }
+                catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(file);}
             }
             foreach (string subDir in Directory.GetDirectories(folder))
             {
-                try
-                {
+               // try
+               // {
                     getAccessibleFiles(subDir, fileAction);
 
-                }
-                catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+               // }
+              //  catch (Exception ex) { Trace.TraceError(ex.ToString()); }
             }
 
         }
 
-        static void processFile(string path) { }
+        static void processFile(string path)
+        {
+ 
+        }
 
         public void ClearLists()
         {
@@ -184,6 +199,13 @@ namespace ImageCacheUtility
             zeroSizeFiles.Clear();
         }
 
+        public void ClearInaccessibleFiles()
+        {
+            inaccessibleFiles.Clear();
+        }
+
+
+
 
         
         public Actions() //Constructor for Lists
@@ -192,7 +214,8 @@ namespace ImageCacheUtility
             oldFilesDate = new List<string>();
             oldFilesFullPath = new List<string>();
             fullPath = new List<string>();
-            zeroSizeFiles = new List<string>();            
+            zeroSizeFiles = new List<string>();
+            inaccessibleFiles = new List<string>();
         }
 
 
