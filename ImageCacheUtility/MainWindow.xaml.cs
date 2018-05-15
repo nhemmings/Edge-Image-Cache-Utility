@@ -30,17 +30,17 @@ namespace ImageCacheUtility
 
         private void Find_Click(object sender, RoutedEventArgs e)
         {
-            if (!checkCacheExistsWithPrompt())
+            if (!_CheckCacheExistsWithPrompt())
                 return;
 
-            InaccessibleFilesTab.Visibility = Visibility.Hidden;
-            InaccessibleFiles.Items.Clear();
-            action.ClearInaccessibleFiles();
+            InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
+            InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
+            action.ClearInaccessibleFiles(); //clear inaccessible files list
             action.ClearLists();       //clear lists of files in action
             Zero_KB_Files.Items.Clear();//clear listview
             action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
             action.FindEmptyFiles();
-            //action.Debug_FullPath();
+
             if (action.ReturnEmptyFiles().Count == 0)
             {
                 MessageBox.Show("No empty files found.", "No Empty Files");
@@ -49,14 +49,12 @@ namespace ImageCacheUtility
                 //add the returned empty files (names or full path) to the list element 
                 for (int i = 0; i < action.ReturnEmptyFiles().Count; i++)
                 {
-                    //Results.Items.Add(action.ReturnEmptyFiles()[i] + "  ||  Size: 0 KB");
                     Zero_KB_Files.Items.Add(new MyItem0KB { ZeroKBFilePath = action.ReturnEmptyFiles()[i], ZeroKBSize = "0 KB" });
                 }
                 Fix.IsEnabled = true;
 
-                if (action.ReturnInaccessibleFiles().Count > 0)
+                if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
                 {
-                    Console.WriteLine("There are inaccessible files.");
                     InaccessibleFilesTab.Visibility = Visibility.Visible;
                     for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
                     {
@@ -65,13 +63,12 @@ namespace ImageCacheUtility
                     }
                     InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
                 }
-                else { Console.WriteLine("There are not inaccessible files."); }
             }
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
         {
-            if (!checkCacheExistsWithPrompt())
+            if (!_CheckCacheExistsWithPrompt())
                 return;
 
             Fix.IsEnabled = false;
@@ -88,30 +85,25 @@ namespace ImageCacheUtility
         private void Find_Delete_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
-            if (!checkCacheExistsWithPrompt())
+            if (!_CheckCacheExistsWithPrompt())
                 return;
 
-            InaccessibleFilesTab.Visibility = Visibility.Hidden;
-            InaccessibleFiles.Items.Clear();
-            action.ClearInaccessibleFiles();
+            InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
+            InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
+            action.ClearInaccessibleFiles(); //clear inaccessible files list
             Results_Old_Files.Items.Clear();//clear listview
-            //Console.WriteLine("Cleared");
             action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
-            // Console.WriteLine(DesiredRemovalDate.DisplayDate);
-            //Console.WriteLine(DesiredRemovalDate.DisplayDateStart);
 
             //check for date in past or it will not run todays date will delete entire cache probably not what they want
-            if (DesiredRemovalDate.DisplayDate.Date >= System.DateTime.Now.Date)
+            if (DesiredRemovalDate.DisplayDate.Date >= DateTime.Now.Date)
             {
                 MessageBox.Show("The delete date is today's date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
             }
             else
             {
                 action.ClearLists(); // clear list of files in action
-                //Console.WriteLine("set date");
                 action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
                 action.FindOldFiles();
-                // Console.WriteLine("Generate List");
 
                 if (action.ReturnOldFilesFullPath().Count == 0)
                 {
@@ -122,14 +114,10 @@ namespace ImageCacheUtility
                     //add old files full paths to the list along with last modified date
                     for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
                     {
-                        //Results_Delete.Items.Add(action.ReturnOldFilesFullPath()[i] + "  ||  Last Modified Date: "
-                        // + action.ReturnOldFilesModifyDate()[i]);
                         Results_Old_Files.Items.Add(new MyItemOldFile { FilePath = action.ReturnOldFilesFullPath()[i], LastModifiedDate = action.ReturnOldFilesModifyDate()[i] });
-
                     }
                     Delete.IsEnabled = true;
-                    //Console.WriteLine("List Complete");    
-                    if (action.ReturnInaccessibleFiles().Count > 0)
+                    if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
                     {
                         InaccessibleFilesTab.Visibility = Visibility.Visible;
                         for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
@@ -164,12 +152,12 @@ namespace ImageCacheUtility
             //If they chose to proceed with the delete goes through delete process and clears lists
             if (messageBoxResult == MessageBoxResult.Yes)
             {
-                Delete.IsEnabled = false;
+                Delete.IsEnabled = false;//disables delete button
                 action.DeleteOldFiles(); //delete old files
                 Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
                 action.ClearLists(); // clear list of files in action
-                FileSizeValue.Content = "";
-                CountValue.Content = "";
+                FileSizeValue.Content = ""; //resets file size value label
+                CountValue.Content = ""; //resets count label
             }
         }
 
@@ -177,7 +165,7 @@ namespace ImageCacheUtility
          * TextBox TextChanged listener for ImageCachePath text boxes.
          * Synchronizes CachePath property and all ImageCachePath TextBoxes any time the user modifies a path field
          */
-        private void cachePathTextChanged(object sender, TextChangedEventArgs e)
+        private void _CachePathTextChanged(object sender, TextChangedEventArgs e)
         {
             Fix.IsEnabled = false;
             Delete.IsEnabled = false;
@@ -190,7 +178,7 @@ namespace ImageCacheUtility
         /**
          * Check if current cache path is a valid, accessible directory.
          */
-        private bool checkCacheExists()
+        private bool _CheckCacheExists()
         {
             if (String.IsNullOrEmpty(action.CachePath))
                 return false;
@@ -203,7 +191,7 @@ namespace ImageCacheUtility
          * Displays a dialog box prompting the user to enter a cache path if the path property is null or empty.
          * Displays a dialog box informing the user that the provided path is not accessible.
          */
-        private bool checkCacheExistsWithPrompt()
+        private bool _CheckCacheExistsWithPrompt()
         {
             if (String.IsNullOrEmpty(action.CachePath))
             {
@@ -224,6 +212,7 @@ namespace ImageCacheUtility
             return true;
         }
 
+        //private classes to add items to list views for each tab TODO is there a better way to do this?
         private class MyItemOldFile
         {
             public string FilePath { get; set; }
@@ -237,6 +226,7 @@ namespace ImageCacheUtility
 
             public string ZeroKBSize { get; set; }
         }
+
         private class MyItemInaccessibleFiles
         {
             public string InaccessibleFileList { get; set;}

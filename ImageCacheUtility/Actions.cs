@@ -12,7 +12,6 @@ namespace ImageCacheUtility
 {
     class Actions
     {
-        //private string[] fullPath;
         public string CachePath { get; set; }
         private bool returnFullPath = false;
         private DateTime oldDate;
@@ -22,18 +21,15 @@ namespace ImageCacheUtility
 
         public void FindEmptyFiles()
         {
-            getAccessibleFiles(CachePath, processFile);
+            _GetAccessibleFiles(CachePath, _ProcessFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
                 var fi = new FileInfo(accessibleFiles[i].ToString());
                 if (fi.Length == 0)
                 {
-                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
                     zeroSizeFiles.Add(fi.Name);
                     fullPath.Add(fi.FullName);
-                    //Console.WriteLine(fi.FullName);
-                    
                 }
             }
 
@@ -50,7 +46,6 @@ namespace ImageCacheUtility
                 return zeroSizeFiles; // return file name
             }
         }
-
 
         public void FixEmptyFiles()
         {
@@ -76,14 +71,6 @@ namespace ImageCacheUtility
 
         }
 
-        /*public void Debug_FullPath() //Debug method 
-        {
-            for (int i = 0; i < fullPath.Length; i++)
-            {
-                Console.WriteLine(fullPath[i]);
-            }
-        }*/
-
         public void SetReturnFullPathToggle() //Method to set toggle of returning full file path or file name 0kb files
         {
             if (returnFullPath)
@@ -98,7 +85,7 @@ namespace ImageCacheUtility
 
         public void FindOldFiles()
         {
-            getAccessibleFiles(CachePath, processFile);
+            _GetAccessibleFiles(CachePath, _ProcessFile);
 
             for (int i = 0; i < accessibleFiles.Count; i++)
             {
@@ -111,9 +98,8 @@ namespace ImageCacheUtility
                     oldFilesDate.Add(fi.LastWriteTime.ToString());
                 }
             }
-            convertBytesLabel();
-            convertBytes();
-            
+            _ConvertBytesLabel();
+            _ConvertBytes();         
         }
 
         public void SetDate(DateTime date)
@@ -121,7 +107,6 @@ namespace ImageCacheUtility
             oldDate = date;
             //Console.WriteLine("old date" + oldDate);
         }
-
 
         public List<string> ReturnOldFilesFullPath()
         {
@@ -137,8 +122,6 @@ namespace ImageCacheUtility
         {
             return inaccessibleFiles;
         }
-
-
 
         public void DeleteOldFiles()
         {
@@ -158,9 +141,8 @@ namespace ImageCacheUtility
             }
         }
 
-
         //TODO better comment, Black magic occurs
-        private void getAccessibleFiles(string folder, Action<string> fileAction)
+        private void _GetAccessibleFiles(string folder, Action<string> fileAction)
         {
             foreach (string file in Directory.GetFiles(folder))
             {
@@ -175,22 +157,14 @@ namespace ImageCacheUtility
             }
             foreach (string subDir in Directory.GetDirectories(folder))
             {
-               // try
-               // {
-                    getAccessibleFiles(subDir, fileAction);
-
-               // }
-              //  catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+                    _GetAccessibleFiles(subDir, fileAction);
             }
 
         }
 
-        static void processFile(string path)
-        {
- 
-        }
+        static void _ProcessFile(string path){}
 
-        public void ClearLists()
+        public void ClearLists() //cleasrs all lists besides inaccessible files as they are cleared at different times
         {
             oldFilesFullPath.Clear();
             accessibleFiles.Clear();
@@ -199,15 +173,12 @@ namespace ImageCacheUtility
             zeroSizeFiles.Clear();
         }
 
-        public void ClearInaccessibleFiles()
+        public void ClearInaccessibleFiles() //clears inaccessible files
         {
             inaccessibleFiles.Clear();
         }
 
 
-
-
-        
         public Actions() //Constructor for Lists
         {
             accessibleFiles = new List<string>();
@@ -218,8 +189,7 @@ namespace ImageCacheUtility
             inaccessibleFiles = new List<string>();
         }
 
-
-        private void convertBytesLabel() //Sets the file size label 
+        private void _ConvertBytesLabel() //Sets the file size label based off of the file size
         {
             if (totalFileSize < 1000)
             {
@@ -239,7 +209,7 @@ namespace ImageCacheUtility
             }
         }
 
-        private void convertBytes() //converts the byte number to match the updated label
+        private void _ConvertBytes() //converts the byte number to match the updated label
         {
             switch (fileSizeLabel)
             {
@@ -257,12 +227,12 @@ namespace ImageCacheUtility
             }
         }
 
-        public string ReturnTotalBytes()
+        public string ReturnTotalBytes() //return total file bytes typically after it is converted to a more manageble size
         {
             return totalFileSize.ToString();
         }
 
-        public string ReturnFileSizeLabel()
+        public string ReturnFileSizeLabel() //returns the label to go with the converted file size IE KB,MB,GB
         {
             return fileSizeLabel;
         }
