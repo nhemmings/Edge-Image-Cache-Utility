@@ -93,7 +93,6 @@ namespace ImageCacheUtility
                 if (fi.LastWriteTime < oldDate)
                 {
                     totalFileSize += fi.Length;
-                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
                     oldFilesFullPath.Add(accessibleFiles.ElementAt(i));
                     oldFilesDate.Add(fi.LastWriteTime.ToString());
                 }
@@ -105,7 +104,6 @@ namespace ImageCacheUtility
         public void SetDate(DateTime date)
         {
             oldDate = date;
-            //Console.WriteLine("old date" + oldDate);
         }
 
         public List<string> ReturnOldFilesFullPath()
@@ -150,14 +148,17 @@ namespace ImageCacheUtility
                 {
                     File.Open(file, FileMode.Open).Close();
                     fileAction(file);
-                    //Console.WriteLine(file);
                     accessibleFiles.Add(file);
                 }
                 catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(file);}
             }
             foreach (string subDir in Directory.GetDirectories(folder))
             {
+                try
+                { 
                     _GetAccessibleFiles(subDir, fileAction);
+                }
+                catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(subDir); }
             }
 
         }

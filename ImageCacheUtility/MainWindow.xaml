@@ -47,12 +47,12 @@
                     </ListView>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="InaccessibleFilesTab" Header="Inaccessible Files" Visibility="Hidden">
+            <TabItem x:Name="InaccessibleFilesTab" Header="Inaccessible Files/Folders" Visibility="Hidden">
                 <Grid Background="#FFE5E5E5">
                     <ListView x:Name="InaccessibleFiles" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,30,10,30">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn DisplayMemberBinding="{Binding Path= InaccessibleFileList}" Header="Inaccessible Files" Width="Auto"/>
+                                <GridViewColumn DisplayMemberBinding="{Binding Path= InaccessibleFileList}" Header="Inaccessible Files/Folders" Width="Auto"/>
                             </GridView>
                         </ListView.View>
                     </ListView>

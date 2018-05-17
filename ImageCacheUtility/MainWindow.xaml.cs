@@ -211,8 +211,8 @@ namespace ImageCacheUtility
 
             return true;
         }
-
-        //private classes to add items to list views for each tab TODO is there a better way to do this?
+        //TODO is there a better way to do this?
+        //private classes to add items to list views for each tab
         private class MyItemOldFile
         {
             public string FilePath { get; set; }
