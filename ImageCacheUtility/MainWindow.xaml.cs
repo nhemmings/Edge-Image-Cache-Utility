@@ -21,10 +21,26 @@ namespace ImageCacheUtility
     public partial class MainWindow : Window
     {
         Actions action = new Actions(); //initialize action class
+        
+        DebugCacheGenerator debugCacheGenerator;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            #if DEBUG
+            enableDebugTab();
+            #else
+            DebugTab.Visibility = Visibility.Hidden;
+            #endif
+
+        }
+        
+        [System.Diagnostics.Conditional("DEBUG")]
+        private void enableDebugTab() {
+            DebugTab.Visibility = Visibility.Visible;
+            DebugTab.IsEnabled = true;
+            debugCacheGenerator = new DebugCacheGenerator();
         }
 
         private void Find_Click(object sender, RoutedEventArgs e)
@@ -129,6 +145,23 @@ namespace ImageCacheUtility
             action.ClearLists(); // clear list of files in action
         }
 
+
+        private async void DebugGenerateCache_Click(object sender, RoutedEventArgs e) {
+            if (!checkCacheExistsWithPrompt())
+                return;
+            int randSeed =  String.IsNullOrEmpty(DebugCacheGeneratorSeed.Text) ? 0 : 
+                            Convert.ToInt32(DebugCacheGeneratorSeed.Text);
+
+            await debugCacheGenerator.generateCache(action.CachePath,
+                Cache0KBCheckBox.IsChecked ?? false,
+                CacheNestedCheckBox.IsChecked ?? false,
+                CacheSizeComboBox.SelectedIndex,
+                CachePermsCheckBox.IsChecked ?? false,
+                Results_Debug,
+                randSeed);
+        }
+
+
         /**
          * TextBox TextChanged listener for ImageCachePath text boxes.
          * Synchronizes CachePath property and all ImageCachePath TextBoxes any time the user modifies a path field
@@ -141,6 +174,21 @@ namespace ImageCacheUtility
             action.CachePath = textBox.Text;
             ImageCachePathBox.Text = action.CachePath;
             ImageCachePathBox_Delete.Text = action.CachePath;
+            ImageCachePathBox_Debug.Text = action.CachePath;
+        }
+
+        private void DebugCacheGeneratorSeed_TextChanged(object sender, TextChangedEventArgs e) {
+            var textBox = sender as TextBox;
+            var changes = e.Changes;
+            foreach (var change in changes) {
+                if (change.RemovedLength > 0)
+                    continue;
+;
+                if (!char.IsDigit(textBox.Text[change.Offset])) {
+                    textBox.Text = textBox.Text.Remove(change.Offset, 1);
+                    textBox.CaretIndex = textBox.Text.Length;
+                }
+            }
         }
 
         /**
