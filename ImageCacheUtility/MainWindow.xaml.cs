@@ -21,6 +21,9 @@ namespace ImageCacheUtility
     /// </summary>
     public partial class MainWindow : Window
     {
+        private int oldFilesCount;
+        private long oldFilesSize;
+        private string sizeLabel;
         Actions action = new Actions(); //initialize action class
 
         public MainWindow()
@@ -39,17 +42,29 @@ namespace ImageCacheUtility
             action.ClearLists();       //clear lists of files in action
             Zero_KB_Files.Items.Clear();//clear listview
             action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-            action.FindEmptyFiles();
+            action.FindFiles();
 
-            if (action.ReturnEmptyFiles().Count == 0)
+            if (action.ReturnFileInfo().Count == 0)
             {
                 MessageBox.Show("No empty files found.", "No Empty Files");
             }
             else {
                 //add the returned empty files (names or full path) to the list element 
-                for (int i = 0; i < action.ReturnEmptyFiles().Count; i++)
+                for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                 {
-                    Zero_KB_Files.Items.Add(new MyItem0KB { ZeroKBFilePath = action.ReturnEmptyFiles()[i], ZeroKBSize = "0 KB" });
+                    if (action.ReturnFileInfo()[i].Length == 0)
+                    {
+                        if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
+                        { 
+                            Zero_KB_Files.Items.Add(new MyItem0KB { ZeroKBFilePath = action.ReturnFileInfo()[i].ToString(),
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"});
+                        }
+                        else
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB { ZeroKBFilePath = action.ReturnFileInfo()[i].Name,
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB" });
+                        }
+                    }
                 }
                 Fix.IsEnabled = true;
 
@@ -59,7 +74,6 @@ namespace ImageCacheUtility
                     for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
                     {
                         InaccessibleFiles.Items.Add(new MyItemInaccessibleFiles { InaccessibleFileList = action.ReturnInaccessibleFiles()[i] });
-                       
                     }
                     InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
                 }
@@ -77,17 +91,14 @@ namespace ImageCacheUtility
             action.ClearLists(); //clear list of files in action
         }
 
-        private void CheckBox_Changed(object sender, RoutedEventArgs e)
-        {
-            action.SetReturnFullPathToggle();
-        }
-
         private void Find_Delete_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
             if (!_CheckCacheExistsWithPrompt())
                 return;
 
+            oldFilesSize = 0;
+            oldFilesCount = 0;
             InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
             InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
             action.ClearInaccessibleFiles(); //clear inaccessible files list
@@ -103,18 +114,23 @@ namespace ImageCacheUtility
             {
                 action.ClearLists(); // clear list of files in action
                 action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
-                action.FindOldFiles();
+                action.FindFiles();
 
-                if (action.ReturnOldFilesFullPath().Count == 0)
+                if (action.ReturnFileInfo().Count == 0)
                 {
                     Delete.IsEnabled = false;
                     MessageBox.Show("No old files found.", "No Old Files");
                 }
                 else {
                     //add old files full paths to the list along with last modified date
-                    for (int i = 0; i < action.ReturnOldFilesFullPath().Count; i++)
+                    for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                     {
-                        Results_Old_Files.Items.Add(new MyItemOldFile { FilePath = action.ReturnOldFilesFullPath()[i], LastModifiedDate = action.ReturnOldFilesModifyDate()[i] });
+                        if (action.ReturnFileInfo()[i].LastWriteTime < DesiredRemovalDate.DisplayDate)
+                        { 
+                            Results_Old_Files.Items.Add(new MyItemOldFile { FilePath = action.ReturnFileInfo()[i].ToString(), LastModifiedDate = action.ReturnFileInfo()[i].LastWriteTime.ToString() });
+                            oldFilesCount++;
+                            oldFilesSize += action.ReturnFileInfo()[i].Length;
+                        }
                     }
                     Delete.IsEnabled = true;
                     if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
@@ -127,8 +143,9 @@ namespace ImageCacheUtility
                         InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
                     }
                 }
-                CountValue.Content = action.ReturnOldFilesFullPath().Count;
-                FileSizeValue.Content = action.ReturnTotalBytes() + " " + action.ReturnFileSizeLabel();
+                _ConvertBytes();
+                CountValue.Content = oldFilesCount;
+                FileSizeValue.Content = oldFilesSize + " " + sizeLabel;
             }
         }
 
@@ -146,7 +163,7 @@ namespace ImageCacheUtility
         {
             //Message box to display size of files being deleted and allows the operator to back out before the delete occurs
             MessageBoxResult messageBoxResult = MessageBox.Show(
-                    "You are about to delete " + action.ReturnTotalBytes() + " " + action.ReturnFileSizeLabel() +
+                    "You are about to delete " + oldFilesSize + " " + sizeLabel +
                     "\n would you like to proceed?", "Delete Prompt", MessageBoxButton.YesNo);
 
             //If they chose to proceed with the delete goes through delete process and clears lists
@@ -230,6 +247,34 @@ namespace ImageCacheUtility
         private class MyItemInaccessibleFiles
         {
             public string InaccessibleFileList { get; set;}
+        }
+
+        private void _ConvertBytes()
+        {
+            if (oldFilesSize < 1000)
+            {
+                sizeLabel = "bytes";
+            }
+            else if (oldFilesSize > 1000 && oldFilesSize < 1000000)
+            {
+                oldFilesSize = oldFilesSize / 1000;
+                sizeLabel = "KB";
+            }
+            else if (oldFilesSize > 1000000 && oldFilesSize < 1000000000)
+            {
+                oldFilesSize = oldFilesSize / 1000000;
+                sizeLabel = "MB";
+            }
+            else if (oldFilesSize > 1000000000 && oldFilesSize < 1000000000000)
+            {
+                oldFilesSize = oldFilesSize / 1000000000;
+                sizeLabel = "GB";
+            }
+            else
+            {
+                oldFilesSize = oldFilesSize / 1000000000000;
+                sizeLabel = "TB";
+            }
         }
     }
 }

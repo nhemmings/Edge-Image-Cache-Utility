@@ -14,7 +14,7 @@
                     <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
                     <Button x:Name="Find" Content="Find" HorizontalAlignment="Center" Margin="-125,50,0,0" VerticalAlignment="Top" Width="75" Click="Find_Click"/>
                     <Button x:Name="Fix" Content="Fix" HorizontalAlignment="Center" Margin="125,50,0,0" VerticalAlignment="Top" Width="75" Click="Fix_Click" IsEnabled="False"/>
-                    <CheckBox Content="Return Full Path" HorizontalAlignment="Right" Margin="0,0,10,7" VerticalAlignment="Bottom" Checked="CheckBox_Changed" Unchecked="CheckBox_Changed" IsChecked="True"/>
+                    <CheckBox x:Name="ReturnFullPathCheckBox" Content="Return Full Path" HorizontalAlignment="Right" Margin="0,0,10,7" VerticalAlignment="Bottom" IsChecked="True"/>
                     <ListView x:Name="Zero_KB_Files" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,100,10,30">
                         <ListView.View>
                             <GridView>
