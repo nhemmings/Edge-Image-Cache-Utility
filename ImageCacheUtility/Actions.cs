@@ -14,14 +14,13 @@ namespace ImageCacheUtility
     {
         public string CachePath { get; set; }
         private DateTime oldDate;
-        private List<string> accessibleFiles, inaccessibleFiles; 
+        private List<string> inaccessibleFiles; 
 
         private List<FileInfo> accessibleFilesInfo;
 
         public void FindFiles()
         {
             _GetAccessibleFiles(CachePath);
-            _GetFileInfo();
         }
 
         public void FixEmptyFiles()
@@ -94,7 +93,7 @@ namespace ImageCacheUtility
                 try
                 {
                     File.Open(file, FileMode.Open).Close();
-                    accessibleFiles.Add(file);
+                    accessibleFilesInfo.Add(new FileInfo(file));
                 }
                 catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(file);}
             }
@@ -109,11 +108,8 @@ namespace ImageCacheUtility
 
         }
 
-
-
         public void ClearLists() //cleasrs all lists besides inaccessible files as they are cleared at different times
         {
-            accessibleFiles.Clear();
             accessibleFilesInfo.Clear();
         }
 
@@ -125,20 +121,8 @@ namespace ImageCacheUtility
 
         public Actions() //Constructor for Lists
         {
-            accessibleFiles = new List<string>();
             inaccessibleFiles = new List<string>();
             accessibleFilesInfo = new List<FileInfo>();
-        }
-
-        private void _GetFileInfo()
-        {
-            for (int i = 0; i < accessibleFiles.Count; i++)
-            {
-                accessibleFilesInfo.Add(new FileInfo(accessibleFiles[i].ToString()));
-                if (accessibleFilesInfo[i].Length == 0) { 
-                    Console.WriteLine(accessibleFilesInfo[i] + " " + accessibleFilesInfo[i].Name.ToString());
-                }
-            }
         }
     }
 }
