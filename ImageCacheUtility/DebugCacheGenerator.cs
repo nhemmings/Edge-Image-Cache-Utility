@@ -10,14 +10,28 @@ using System.Windows.Controls;
 namespace ImageCacheUtility {
     class DebugCacheGenerator {
 
-        int[] cacheSizes = { 100, 1000, 2000 };
-        string[] timePointNames = { "Initial", "Progress", "Final" };
+        private readonly int[] cacheSizes = { 100, 1000, 2000 };
+        private readonly string[] timePointNames = { "Initial", "Progress", "Final" };
 
-        int numDirectoriesGenerated, numRegularFilesGenerated, num0KBFilesGenerated, numInitialTimePoints,
-            numProgressTimePoints, numFinalTimePoints;
-        long totalCacheSizeInBytes;
+        //int numDirectoriesGenerated, numRegularFilesGenerated, num0KBFilesGenerated, numInitialTimePoints,
+        //    numProgressTimePoints, numFinalTimePoints;
+        //long totalCacheSizeInBytes;
 
-        public DebugCacheGenerator() {
+        private readonly string dirPath;
+        private readonly bool generate0KB, generateNested, generateBadPerms;
+        private readonly int generateSize;
+        private readonly Random rand;
+        private Dictionary<int, int> _0KBFileDictionary;
+
+        public DebugCacheGenerator(string dirPath, bool generate0KB, bool generateNested, bool generateBadPerms,
+            int generateSize, int seed = 0) {
+            this.dirPath = dirPath;
+            this.generate0KB = generate0KB;
+            this.generateNested = generateNested;
+            this.generateBadPerms = generateBadPerms;
+            this.generateSize = generateSize;
+            rand = seed == 0 ? new Random() : new Random(seed);
+            _0KBFileDictionary = new Dictionary<int, int>();
         }
 
 
@@ -46,13 +60,15 @@ namespace ImageCacheUtility {
          *                  (generate jps and reuse bytes for jpg and jpe)
          * 
          */ 
-        public async Task generateCache(string dirPath, bool generate0KB, bool generateNested,
-                                  int generateSize, bool generateBadPerms, ListBox output, Int32 seed = 0) {
-
-            Random rand = (seed == 0) ? new Random() : new Random(seed);
+        public async Task generateCache() {
+            if (generate0KB)
+            {
+                populate0KBFileDictionary();
+            }
 
             string GUID = generateGUID(rand);
             string GUIDPath = dirPath + '\\' + GUID;
+
             try {
                 Directory.CreateDirectory(GUIDPath);
 
@@ -63,17 +79,7 @@ namespace ImageCacheUtility {
                         currDirPath = GUIDPath + '\\' + currDirName;
                     } while (Directory.Exists(currDirPath));
                     Directory.CreateDirectory(currDirPath);
-                    numDirectoriesGenerated++;
-                    await generatePatientDirectoryContents(rand, currDirName, currDirPath);
-                }
-
-                if (generate0KB) {
-                    // Generate psuedorandom count of 0KB files to generate, scaled by cache size
-                    // Replace existing files with 0KB ones
-                        // Pick a directory to put a full timepoint of 0KB files in
-                        // Pick a few directories to put 2~4 0KB files in
-                        // Pick a directory for ONLY a couple 0KB files
-                        // Put the remaining 0KB files in directories one at a time
+                    await generatePatientDirectoryContents(currDirName, currDirPath);
                 }
 
                 if (generateNested) {
@@ -87,15 +93,6 @@ namespace ImageCacheUtility {
             catch (SystemException e) {
                 MessageBox.Show(e.Message, "SystemException");
             }
-
-            output.Items.Add("Cache generation complete.");
-            output.Items.Add($"  {numDirectoriesGenerated} Directories");
-            output.Items.Add($"  {num0KBFilesGenerated} 0KB files");
-            output.Items.Add($"  {numRegularFilesGenerated} fake image files");
-            output.Items.Add($"    {numInitialTimePoints} Initial TimePoints");
-            output.Items.Add($"    {numProgressTimePoints} Progress TimePoints");
-            output.Items.Add($"    {numFinalTimePoints} Final TimePoints");
-            output.Items.Add($"  {totalCacheSizeInBytes} total bytes");
         }
 
         private string generateGUID(Random rand) {
@@ -126,7 +123,42 @@ namespace ImageCacheUtility {
             return $"{letter1}{letter2}{num}";
         }
 
-        private async Task generatePatientDirectoryContents(Random rand, string dirName, string dirPath) {
+        private Dictionary<int, int> populate0KBFileDictionary()
+        {
+            int dirNum;
+
+            // One directory to have nothing but a 0KB timepoint
+            dirNum = populate0KBFileDictionaryNextKey();
+            _0KBFileDictionary.Add(dirNum, -1);
+
+            // One or two directories with complete 0KB timepoints
+            for (int i = 0; i < rand.Next(1, 3); i++)
+            {
+                dirNum = populate0KBFileDictionaryNextKey();
+                _0KBFileDictionary.Add(dirNum, 8);
+            }
+
+            // 5% of directories with between 1 and 5 0KB files
+            for (int i = 0; i < (0.05 * cacheSizes[generateSize]))
+            {
+                dirNum = populate0KBFileDictionaryNextKey();
+                _0KBFileDictionary.Add(dirNum, rand.Next(1, 6));
+            }
+
+            return _0KBFileDictionary;
+        }
+
+        private int populate0KBFileDictionaryNextKey()
+        {
+            int newKey;
+            do
+            {
+                newKey = rand.Next(0, cacheSizes[generateSize]);
+            } while (_0KBFileDictionary.ContainsKey(newKey));
+            return newKey;
+        }
+
+        private async Task generatePatientDirectoryContents(string dirName, string dirPath) {
             
             int numTimePoints = rand.Next(1, 4);
             for (int i = 0; i < numTimePoints; i++) {
@@ -155,22 +187,6 @@ namespace ImageCacheUtility {
                         jpeStream.Seek(0, SeekOrigin.Begin);
                         await jpeStream.WriteAsync(fileBytes, 0, sizeInBytesJPE);
                     }
-                    Console.WriteLine($"In \"generatePatientDirectoryContents\" writing to {dirName} with i = {i} and j = {j}");
-                    // Statistic Tracking
-                    numRegularFilesGenerated += 3;
-                    totalCacheSizeInBytes += sizeInBytesJPS += sizeInBytesJPG += sizeInBytesJPE;
-                }
-                switch (i) {
-                    case 0:
-                        numInitialTimePoints++;
-                        break;
-                    case 1:
-                        numProgressTimePoints++;
-                        break;
-                    case 2:
-                        numFinalTimePoints++;
-                        break;
-                }
             }
         }
     }
