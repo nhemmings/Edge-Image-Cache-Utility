@@ -23,6 +23,7 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <CheckBox x:Name="_0kbFixNestedCache" Content="Fix Nested Cache" HorizontalAlignment="Center" Margin="340,53,0,0" VerticalAlignment="Top" IsEnabled="False"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Delete Old Items">
@@ -45,6 +46,7 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <CheckBox x:Name="DeleteFixNestedCache" Content="Fix Nested Caches" HorizontalAlignment="Left" Margin="100,0,0,7" VerticalAlignment="Bottom" IsEnabled="False"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="InaccessibleFilesTab" Header="Inaccessible Files/Folders" Visibility="Hidden">

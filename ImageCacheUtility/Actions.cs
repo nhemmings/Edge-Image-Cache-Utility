@@ -14,13 +14,17 @@ namespace ImageCacheUtility
     {
         public string CachePath { get; set; }
         private DateTime oldDate;
-        private List<string> inaccessibleFiles; 
-
+        private List<string> inaccessibleFiles, nestedCaches, messageBoxContent; 
         private List<FileInfo> accessibleFilesInfo;
+        private int guidLength = 36;
+        private string subDirTemp;
+
 
         public void FindFiles()
         {
             _GetAccessibleFiles(CachePath);
+            nestedCaches = nestedCaches.Distinct().ToList();
+
         }
 
         public void FixEmptyFiles()
@@ -100,8 +104,19 @@ namespace ImageCacheUtility
             foreach (string subDir in Directory.GetDirectories(folder))
             {
                 try
-                { 
+                {
                     _GetAccessibleFiles(subDir);
+                    subDirTemp = subDir;
+                    //checks to see if the path after the cache path is longer than 2 GUIDS, magic numbers are to account for / in path
+                    if (subDir.Remove(0, CachePath.Length + 1).Length > (guidLength * 2))
+                    {
+                        if (subDir.Remove(0, CachePath.Length + guidLength + 2).Length > guidLength)
+                        {
+                            subDirTemp = subDirTemp.Remove(0, CachePath.Length +1);
+                            subDirTemp = subDirTemp.Remove((guidLength*2)+1);
+                            nestedCaches.Add(subDirTemp);
+                        }
+                    }
                 }
                 catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(subDir); }
             }
@@ -111,6 +126,8 @@ namespace ImageCacheUtility
         public void ClearLists() //cleasrs all lists besides inaccessible files as they are cleared at different times
         {
             accessibleFilesInfo.Clear();
+            nestedCaches.Clear();
+            messageBoxContent.Clear();
         }
 
         public void ClearInaccessibleFiles() //clears inaccessible files
@@ -118,11 +135,82 @@ namespace ImageCacheUtility
             inaccessibleFiles.Clear();
         }
 
+        /*for each nested cache it recursively goes through the nested cache and sees if the folder exists in the parent folder if not it creates it.
+        then it copies the files that do not exist to the parent folder*/
+        public void CleanUpNestedCaches() 
+        {
+            for (int i = 0; i < nestedCaches.Count; i++)
+            {
+                string sourcePath = Path.Combine(CachePath, nestedCaches[i]);
+                try
+                { 
+                    foreach (string directory in Directory.GetDirectories(sourcePath))
+                    {
+                        string destinationPath = Path.Combine(CachePath, directory.Substring(CachePath.Length + guidLength + 2));
+
+                        if (Directory.Exists(destinationPath))
+                        {
+                            foreach (string file in Directory.GetFiles(directory))
+                            {
+                                string fileName = Path.GetFileName(file);
+                                string destFile = Path.Combine(destinationPath, fileName);
+                                if (!File.Exists(destFile))
+                                {
+                                    File.Copy(file, destFile, false);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(destinationPath);
+                            foreach (string file in Directory.GetFiles(directory))
+                            {
+                                string fileName = Path.GetFileName(file);
+                                string destFile = Path.Combine(destinationPath, fileName);
+                                File.Copy(file, destFile, false);
+                            }
+                        }
+                    }
+                    Directory.Delete(sourcePath, true);
+                }
+                catch(Exception ex) { Trace.TraceError(ex.ToString());}
+            }
+        }
+
 
         public Actions() //Constructor for Lists
         {
             inaccessibleFiles = new List<string>();
             accessibleFilesInfo = new List<FileInfo>();
+            nestedCaches = new List<string>();
+            messageBoxContent = new List<string>();
+        }
+
+        private void _NestedCacheOutput() //creates the string for the message box and then displays a message box to the end user of what nested caches were detected
+        {
+            if (nestedCaches.Count > 0)
+            {
+                for (int i = 0; i < nestedCaches.Count; i++)
+                {
+                    messageBoxContent.Add("Parent folder: " + nestedCaches[i].Substring(0, guidLength) + "\nNested cache: " + nestedCaches[i].Substring(guidLength + 1) + "\n");
+                }
+                StringBuilder nestedCachesString = new StringBuilder();
+                for (int i = 0; i < messageBoxContent.Count; i++)
+                {
+                    nestedCachesString.AppendLine(messageBoxContent[i]);
+                }
+                MessageBox.Show(nestedCachesString.ToString() + "Check all machines cache paths to make sure they are correct.", "Nested Cache Detected",MessageBoxButton.OK);
+            }
+        }
+
+        public List<string> ReturnNestedCaches()
+        {
+            return nestedCaches;
+        }
+
+        public void ReturnNestedCacheInfo()
+        {
+            _NestedCacheOutput();
         }
     }
 }
