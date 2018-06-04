@@ -7,61 +7,42 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Diagnostics;
 
+
 namespace ImageCacheUtility
 {
     class Actions
     {
-        //private string[] fullPath;
         public string CachePath { get; set; }
-        private bool returnFullPath = false;
         private DateTime oldDate;
-        private List<string> accessibleFiles, oldFilesFullPath, oldFilesDate, fullPath, zeroSizeFiles;
+        private List<string> inaccessibleFiles, nestedCaches, messageBoxContent; 
+        private List<FileInfo> accessibleFilesInfo;
+        private int guidLength = 36;
+        private string subDirTemp;
 
-        public void FindEmptyFiles()
+
+        public void FindFiles()
         {
-            getAccessibleFiles(CachePath, processFile);
-
-            for (int i = 0; i < accessibleFiles.Count; i++)
-            {
-                var fi = new FileInfo(accessibleFiles[i].ToString());
-                if (fi.Length == 0)
-                {
-                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
-                    zeroSizeFiles.Add(fi.Name);
-                    fullPath.Add(fi.FullName);
-                    //Console.WriteLine(fi.FullName);
-                    
-                }
-            }
+            _GetAccessibleFiles(CachePath);
+            nestedCaches = nestedCaches.Distinct().ToList();
 
         }
-
-        public List<string> ReturnEmptyFiles()
-        {
-            if (returnFullPath) //toggle for full path or file name
-            {
-                return fullPath; //return full path
-            }
-            else
-            {
-                return zeroSizeFiles; // return file name
-            }
-        }
-
 
         public void FixEmptyFiles()
         {
             //They must provide a path and find the empty files before deleting them
-            if (fullPath is null || fullPath[0] == "")
+            if (accessibleFilesInfo is null || accessibleFilesInfo[0].Name == "")
             {
                 MessageBox.Show("Please Find Empty Files First", "Find Must Be Run");
             }
             else
             {
                 //passes the full path of each item in the 0kb full path array to the delete command
-                for (int i = 0; i < fullPath.Count; i++)
+                for (int i = 0; i < accessibleFilesInfo.Count; i++)
                 {
-                    File.Delete(fullPath[i]);
+                    if (accessibleFilesInfo[i].Length == 0)
+                    {
+                        File.Delete(accessibleFilesInfo[i].ToString());
+                    }
                 }
                 MessageBox.Show("Empty Files Deleted", "Delete Empty Files Complete");
             }
@@ -73,125 +54,164 @@ namespace ImageCacheUtility
 
         }
 
-        /*public void Debug_FullPath() //Debug method 
-        {
-            for (int i = 0; i < fullPath.Length; i++)
-            {
-                Console.WriteLine(fullPath[i]);
-            }
-        }*/
-
-        public void SetReturnFullPathToggle() //Method to set toggle of returning full file path or file name 0kb files
-        {
-            if (returnFullPath)
-            {
-                returnFullPath = false;
-            }
-            else
-            {
-                returnFullPath = true;
-            }
-        }
-
-        public void FindOldFiles()
-        {
-            getAccessibleFiles(CachePath, processFile);
-
-            for (int i = 0; i < accessibleFiles.Count; i++)
-            {
-                var fi = new FileInfo(accessibleFiles[i].ToString());
-                if (fi.LastWriteTime < oldDate)
-                {
-                    //Console.WriteLine(di.FullName +" "+ di.LastWriteTime);
-                    oldFilesFullPath.Add(accessibleFiles.ElementAt(i));
-                    oldFilesDate.Add(fi.LastWriteTime.ToString());
-                }
-            }
-            
-
-        }
-
         public void SetDate(DateTime date)
         {
             oldDate = date;
-            //Console.WriteLine("old date" + oldDate);
         }
 
-
-        public List<string> ReturnOldFilesFullPath()
+        public List<string> ReturnInaccessibleFiles()
         {
-            //return oldFilesFullPath;
-            return oldFilesFullPath;
+            return inaccessibleFiles;
         }
 
-        public List<string> ReturnOldFilesModifyDate()
+        public List<FileInfo> ReturnFileInfo()
         {
-            return oldFilesDate;
+            return accessibleFilesInfo;
         }
 
         public void DeleteOldFiles()
         {
             //they must find the old files before we delete them
-            if (oldFilesFullPath is null || oldFilesFullPath[0] == "")
+            if (accessibleFilesInfo is null || accessibleFilesInfo[0].Name == "")
             {
                 MessageBox.Show("Please Find Old Files First", "Find Must Be Run");
             }
             else
             {
                 //passes the full path of each item in the old files full path  array to the delete command
-                for (int i = 0; i < oldFilesFullPath.Count; i++)
+                for (int i = 0; i < accessibleFilesInfo.Count; i++)
                 {
-                    File.Delete(oldFilesFullPath[i]);
+                    if (accessibleFilesInfo[i].LastWriteTime < oldDate) { 
+                        File.Delete(accessibleFilesInfo[i].ToString());
+                    }
                 }
                 MessageBox.Show("Old Files Deleted", "Delete Old Files Complete");
             }
         }
 
-
-        //TODO better comment, Black magic occurs
-        private void getAccessibleFiles(string folder, Action<string> fileAction)
+        //recursively goes through sub directories and files within the passed in file path. It attempts accessing them to build accessible files and inaccessible files/folders
+        private void _GetAccessibleFiles(string folder)
         {
             foreach (string file in Directory.GetFiles(folder))
             {
-                fileAction(file);
-                //Console.WriteLine(file);
-                accessibleFiles.Add(file);
+                try
+                {
+                    File.Open(file, FileMode.Open).Close();
+                    accessibleFilesInfo.Add(new FileInfo(file));
+                }
+                catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(file);}
             }
             foreach (string subDir in Directory.GetDirectories(folder))
             {
                 try
                 {
-                    getAccessibleFiles(subDir, fileAction);
-
+                    _GetAccessibleFiles(subDir);
+                    subDirTemp = subDir;
+                    //checks to see if the path after the cache path is longer than 2 GUIDS, magic numbers are to account for / in path
+                    if (subDir.Remove(0, CachePath.Length + 1).Length > (guidLength * 2))
+                    {
+                        if (subDir.Remove(0, CachePath.Length + guidLength + 2).Length > guidLength)
+                        {
+                            subDirTemp = subDirTemp.Remove(0, CachePath.Length +1);
+                            subDirTemp = subDirTemp.Remove((guidLength*2)+1);
+                            nestedCaches.Add(subDirTemp);
+                        }
+                    }
                 }
-                catch (Exception ex) { Trace.TraceError(ex.ToString()); }
+                catch(Exception ex) { Trace.TraceError(ex.ToString()); inaccessibleFiles.Add(subDir); }
             }
 
         }
 
-        static void processFile(string path) { }
-
-        public void ClearLists()
+        public void ClearLists() //cleasrs all lists besides inaccessible files as they are cleared at different times
         {
-            oldFilesFullPath.Clear();
-            accessibleFiles.Clear();
-            oldFilesDate.Clear();
-            fullPath.Clear();
-            zeroSizeFiles.Clear();
+            accessibleFilesInfo.Clear();
+            nestedCaches.Clear();
+            messageBoxContent.Clear();
+        }
+
+        public void ClearInaccessibleFiles() //clears inaccessible files
+        {
+            inaccessibleFiles.Clear();
+        }
+
+        /*for each nested cache it recursively goes through the nested cache and sees if the folder exists in the parent folder if not it creates it.
+        then it copies the files that do not exist to the parent folder*/
+        public void CleanUpNestedCaches() 
+        {
+            for (int i = 0; i < nestedCaches.Count; i++)
+            {
+                string sourcePath = Path.Combine(CachePath, nestedCaches[i]);
+                try
+                { 
+                    foreach (string directory in Directory.GetDirectories(sourcePath))
+                    {
+                        string destinationPath = Path.Combine(CachePath, directory.Substring(CachePath.Length + guidLength + 2));
+
+                        if (Directory.Exists(destinationPath))
+                        {
+                            foreach (string file in Directory.GetFiles(directory))
+                            {
+                                string fileName = Path.GetFileName(file);
+                                string destFile = Path.Combine(destinationPath, fileName);
+                                if (!File.Exists(destFile))
+                                {
+                                    File.Copy(file, destFile, false);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Directory.CreateDirectory(destinationPath);
+                            foreach (string file in Directory.GetFiles(directory))
+                            {
+                                string fileName = Path.GetFileName(file);
+                                string destFile = Path.Combine(destinationPath, fileName);
+                                File.Copy(file, destFile, false);
+                            }
+                        }
+                    }
+                    Directory.Delete(sourcePath, true);
+                }
+                catch(Exception ex) { Trace.TraceError(ex.ToString());}
+            }
         }
 
 
-        //Constructor for Lists
-        public Actions()
+        public Actions() //Constructor for Lists
         {
-            accessibleFiles = new List<string>();
-            oldFilesDate = new List<string>();
-            oldFilesFullPath = new List<string>();
-            fullPath = new List<string>();
-            zeroSizeFiles = new List<string>();            
+            inaccessibleFiles = new List<string>();
+            accessibleFilesInfo = new List<FileInfo>();
+            nestedCaches = new List<string>();
+            messageBoxContent = new List<string>();
         }
 
+        private void _NestedCacheOutput() //creates the string for the message box and then displays a message box to the end user of what nested caches were detected
+        {
+            if (nestedCaches.Count > 0)
+            {
+                for (int i = 0; i < nestedCaches.Count; i++)
+                {
+                    messageBoxContent.Add("Parent folder: " + nestedCaches[i].Substring(0, guidLength) + "\nNested cache: " + nestedCaches[i].Substring(guidLength + 1) + "\n");
+                }
+                StringBuilder nestedCachesString = new StringBuilder();
+                for (int i = 0; i < messageBoxContent.Count; i++)
+                {
+                    nestedCachesString.AppendLine(messageBoxContent[i]);
+                }
+                MessageBox.Show(nestedCachesString.ToString() + "Check all machines cache paths to make sure they are correct.", "Nested Cache Detected",MessageBoxButton.OK);
+            }
+        }
 
+        public List<string> ReturnNestedCaches()
+        {
+            return nestedCaches;
+        }
+
+        public void ReturnNestedCacheInfo()
+        {
+            _NestedCacheOutput();
+        }
     }
 }
 
