@@ -30,19 +30,13 @@ namespace ImageCacheUtility
         public MainWindow()
         {
             InitializeComponent();
-
-            #if DEBUG
-                enableDebugTab();
-            #else
-                DebugTab.Visibility = Visibility.Hidden;
-            #endif
+            unhideDebugTab();
 
         }
         
         [System.Diagnostics.Conditional("DEBUG")]
-        private void enableDebugTab() {
+        private void unhideDebugTab() {
             DebugTab.Visibility = Visibility.Visible;
-            DebugTab.IsEnabled = true;
         }
 
         private void Find_Click(object sender, RoutedEventArgs e)

@@ -62,7 +62,7 @@
                     <Label x:Name="InaccessibleFilesCount" Content="0" HorizontalAlignment="Right" Margin="0,0,10,3" VerticalAlignment="Bottom"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="DebugTab" Header="Debug">
+            <TabItem x:Name="DebugTab" Header="Debug" Visibility="Hidden">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel_Debug" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="ImageCachePathBox_Debug" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
