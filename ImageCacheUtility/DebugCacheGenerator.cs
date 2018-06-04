@@ -59,8 +59,8 @@ namespace ImageCacheUtility {
          *                  jpe 8KB~22KB
          *                  (generate jps and reuse bytes for jpg and jpe)
          * 
-         */ 
-        public async Task generateCache() {
+         */
+        public void generateCache() {
             if (generate0KB)
             {
                 populate0KBFileDictionary();
@@ -79,7 +79,7 @@ namespace ImageCacheUtility {
                         currDirPath = GUIDPath + '\\' + currDirName;
                     } while (Directory.Exists(currDirPath));
                     Directory.CreateDirectory(currDirPath);
-                    await generatePatientDirectoryContents(currDirName, currDirPath);
+                    generatePatientDirectoryContents(currDirName, currDirPath);
                 }
 
                 if (generateNested) {
@@ -88,7 +88,7 @@ namespace ImageCacheUtility {
                     // Copy 1/4 of first-level directories to nested directory
                     // Generate and equal number of new directories and populate them
                 }
-                    
+
             }
             catch (SystemException e) {
                 MessageBox.Show(e.Message, "SystemException");
@@ -98,7 +98,7 @@ namespace ImageCacheUtility {
         private string generateGUID(Random rand) {
             StringBuilder GUIDBuilder = new StringBuilder(36);
             for (int i = 0; i < GUIDBuilder.Capacity; i++) {
-                
+
                 switch (i) {
                     case 8:
                     case 13:
@@ -139,7 +139,7 @@ namespace ImageCacheUtility {
             }
 
             // 5% of directories with between 1 and 5 0KB files
-            for (int i = 0; i < (0.05 * cacheSizes[generateSize]))
+            for (int i = 0; i < (0.05 * cacheSizes[generateSize]); i++)
             {
                 dirNum = populate0KBFileDictionaryNextKey();
                 _0KBFileDictionary.Add(dirNum, rand.Next(1, 6));
@@ -158,8 +158,8 @@ namespace ImageCacheUtility {
             return newKey;
         }
 
-        private async Task generatePatientDirectoryContents(string dirName, string dirPath) {
-            
+        private void generatePatientDirectoryContents(string dirName, string dirPath) {
+
             int numTimePoints = rand.Next(1, 4);
             for (int i = 0; i < numTimePoints; i++) {
                 for (int j = 1; j < 9; j++) {
@@ -172,21 +172,22 @@ namespace ImageCacheUtility {
                     int sizeInBytesJPG = (int)(sizeInBytesJPS * 0.9);
                     int sizeInBytesJPE = rand.Next(8, 22);
                     rand.NextBytes(fileBytes);
-                    
+
                     using (FileStream jpsStream = File.Create(filePathJPS, sizeInBytesJPS, FileOptions.Asynchronous)) {
                         jpsStream.Seek(0, SeekOrigin.Begin);
-                        await jpsStream.WriteAsync(fileBytes, 0, fileBytes.Length);
+                        jpsStream.Write(fileBytes, 0, fileBytes.Length);
                     }
 
                     using (FileStream jpgStream = File.Create(filePathJPG, sizeInBytesJPG, FileOptions.Asynchronous)) {
                         jpgStream.Seek(0, SeekOrigin.Begin);
-                        await jpgStream.WriteAsync(fileBytes, 0, sizeInBytesJPG);
+                        jpgStream.Write(fileBytes, 0, sizeInBytesJPG);
                     }
 
                     using (FileStream jpeStream = File.Create(filePathJPE, sizeInBytesJPE, FileOptions.Asynchronous)) {
                         jpeStream.Seek(0, SeekOrigin.Begin);
-                        await jpeStream.WriteAsync(fileBytes, 0, sizeInBytesJPE);
+                        jpeStream.Write(fileBytes, 0, sizeInBytesJPE);
                     }
+                }
             }
         }
     }

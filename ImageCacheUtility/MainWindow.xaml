@@ -65,7 +65,7 @@
             <TabItem x:Name="DebugTab" Header="Debug">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel_Debug" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox_Debug" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="cachePathTextChanged"/>
+                    <TextBox x:Name="ImageCachePathBox_Debug" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
                     <CheckBox x:Name="Cache0KBCheckBox" Content="Generate 0KB files" HorizontalAlignment="Left" Margin="10,51,0,0" VerticalAlignment="Top"/>
                     <CheckBox x:Name="CacheNestedCheckBox" Content="Generate nested cache(s)" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top"/>
                     <CheckBox x:Name="CachePermsCheckBox" Content="Generate bad read/write permissions" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top"/>
