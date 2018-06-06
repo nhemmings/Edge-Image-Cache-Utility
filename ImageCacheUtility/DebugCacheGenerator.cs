@@ -75,7 +75,7 @@ namespace ImageCacheUtility {
             }
 
             string GUID = generateGUID(rand);
-            string GUIDPath = dirPath + '\\' + GUID;
+            string GUIDPath = Path.Combine(dirPath, GUID);
 
             try {
                 Directory.CreateDirectory(GUIDPath);
@@ -85,7 +85,7 @@ namespace ImageCacheUtility {
                 for (int i = 0; i < cacheSizes[generateSize]; i++) {
                     do {
                         currDirName = generateDirName(rand);
-                        currDirPath = GUIDPath + '\\' + currDirName;
+                        currDirPath = Path.Combine(GUIDPath, currDirName);
                     } while (Directory.Exists(currDirPath));
                     Directory.CreateDirectory(currDirPath);
                     if (generate0KB)
@@ -96,7 +96,7 @@ namespace ImageCacheUtility {
                 }
 
                 if (generateNested) {
-                    string nestedPath = GUIDPath + '\\' + GUID;
+                    string nestedPath = Path.Combine(GUIDPath, GUID);
                     Directory.CreateDirectory(nestedPath);
                     // Copy 1/4 of first-level directories to nested directory
                     // Generate and equal number of new directories and populate them
@@ -183,38 +183,58 @@ namespace ImageCacheUtility {
         }
 
         private void generatePatientDirectoryContents(string dirName, string dirPath, int num0KB) {
-            int numTimePoints;
+            int numTimePoints = rand.Next(1, 4);
+            int timepointIndexFor0KBFiles = -1;
+            List<int> fileIndexesFor0KBFiles = new List<int>(8);
+
             switch (num0KB)
             {
                 case -1:
                     numTimePoints = 1;
+                    timepointIndexFor0KBFiles = 0;
+                    for (int i = 1; i < 9; i++) {
+                        fileIndexesFor0KBFiles.Add(i);
+                    }
                     break;
                 case 0:
+                    break;
                 default:
-                    numTimePoints = rand.Next(1, 4);
+                    timepointIndexFor0KBFiles = numTimePoints - 1;
+                    for (int i = 1; i < num0KB + 1; i++) {
+                        fileIndexesFor0KBFiles.Add(i);
+                    }
                     break;
 
             }
+
             for (int i = 0; i < numTimePoints; i++) {
                 for (int j = 1; j < 9; j++) {
                     string filePathJPS = $"{dirPath}\\{dirName}-{timePointNames[i]}-{j}.jps";
                     string filePathJPG = $"{dirPath}\\{dirName}-{timePointNames[i]}-{j}.jpg";
                     string filePathJPE = $"{dirPath}\\{dirName}-{timePointNames[i]}-{j}.jpe";
 
-                    int sizeInBytesJPS = rand.Next(minJPSSize, maxJPSsize);
-                    int sizeInBytesJPG = (int)(sizeInBytesJPS * 0.9);
-                    int sizeInBytesJPE = rand.Next(8, 22);
+                    int sizeInBytesJPS;
 
-                    using (FileStream jpsStream = File.Create(filePathJPS, sizeInBytesJPS, FileOptions.SequentialScan)) {
-                        jpsStream.Seek(0, SeekOrigin.Begin);
-                        jpsStream.Write(fileBytes, 0, sizeInBytesJPS);
+                    if (timepointIndexFor0KBFiles == i && fileIndexesFor0KBFiles.Contains(j)) {
+                        File.Create(filePathJPS).Close();
+                        File.Create(filePathJPG).Close();
+                    } else {
+                        sizeInBytesJPS = rand.Next(minJPSSize, maxJPSsize);
+                        int sizeInBytesJPG = (int)(sizeInBytesJPS * 0.9);
+                        
+
+                        using (FileStream jpsStream = File.Create(filePathJPS, sizeInBytesJPS, FileOptions.SequentialScan)) {
+                            jpsStream.Seek(0, SeekOrigin.Begin);
+                            jpsStream.Write(fileBytes, 0, sizeInBytesJPS);
+                        }
+
+                        using (FileStream jpgStream = File.Create(filePathJPG, sizeInBytesJPG, FileOptions.SequentialScan)) {
+                            jpgStream.Seek(0, SeekOrigin.Begin);
+                            jpgStream.Write(fileBytes, 0, sizeInBytesJPG);
+                        }
                     }
 
-                    using (FileStream jpgStream = File.Create(filePathJPG, sizeInBytesJPG, FileOptions.SequentialScan)) {
-                        jpgStream.Seek(0, SeekOrigin.Begin);
-                        jpgStream.Write(fileBytes, 0, sizeInBytesJPG);
-                    }
-
+                    int sizeInBytesJPE = rand.Next(8192, 22528);
                     using (FileStream jpeStream = File.Create(filePathJPE, sizeInBytesJPE, FileOptions.SequentialScan)) {
                         jpeStream.Seek(0, SeekOrigin.Begin);
                         jpeStream.Write(fileBytes, 0, sizeInBytesJPE);
