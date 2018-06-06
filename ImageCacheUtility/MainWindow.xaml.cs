@@ -30,6 +30,13 @@ namespace ImageCacheUtility
         public MainWindow()
         {
             InitializeComponent();
+            unhideDebugTab();
+
+        }
+        
+        [System.Diagnostics.Conditional("DEBUG")]
+        private void unhideDebugTab() {
+            DebugTab.Visibility = Visibility.Visible;
         }
 
         private void Find_Click(object sender, RoutedEventArgs e)
@@ -216,6 +223,24 @@ namespace ImageCacheUtility
             }
         }
 
+
+        private void DebugGenerateCache_Click(object sender, RoutedEventArgs e) {
+            if (!_CheckCacheExistsWithPrompt())
+                return;
+            int randSeed =  String.IsNullOrEmpty(DebugCacheGeneratorSeed.Text) ? 0 : 
+                            Convert.ToInt32(DebugCacheGeneratorSeed.Text);
+
+            DebugCacheGenerator debugCacheGenerator = new DebugCacheGenerator(action.CachePath,
+                Cache0KBCheckBox.IsChecked ?? false,
+                CacheNestedCheckBox.IsChecked ?? false,
+                CachePermsCheckBox.IsChecked ?? false,
+                CacheSizeComboBox.SelectedIndex,
+                randSeed);
+
+            debugCacheGenerator.generateCache();
+        }
+
+
         /**
          * TextBox TextChanged listener for ImageCachePath text boxes.
          * Synchronizes CachePath property and all ImageCachePath TextBoxes any time the user modifies a path field
@@ -227,6 +252,21 @@ namespace ImageCacheUtility
             action.CachePath = textBox.Text;
             ImageCachePathBox.Text = action.CachePath;
             ImageCachePathBox_Delete.Text = action.CachePath;
+            ImageCachePathBox_Debug.Text = action.CachePath;
+        }
+
+        private void DebugCacheGeneratorSeed_TextChanged(object sender, TextChangedEventArgs e) {
+            var textBox = sender as TextBox;
+            var changes = e.Changes;
+            foreach (var change in changes) {
+                if (change.RemovedLength > 0)
+                    continue;
+;
+                if (!char.IsDigit(textBox.Text[change.Offset])) {
+                    textBox.Text = textBox.Text.Remove(change.Offset, 1);
+                    textBox.CaretIndex = textBox.Text.Length;
+                }
+            }
         }
 
         /**

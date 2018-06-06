@@ -7,8 +7,8 @@
         mc:Ignorable="d"
         Title="Image Cache Utility" Height="700" Width="800" MinWidth="800" MinHeight="700">
     <Grid Margin="0,0,0,0">
-        <TabControl HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-            <TabItem Header="Clear 0 KB Files">
+        <TabControl x:Name="MainWindowTabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+            <TabItem Header="Clear 0 KB Files" IsSelected="True">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
@@ -60,6 +60,25 @@
                     </ListView>
                     <Label x:Name="InaccessibleFilesCountLabel" Content="Count" HorizontalAlignment="Right" Margin="0,0,50,3" VerticalAlignment="Bottom"/>
                     <Label x:Name="InaccessibleFilesCount" Content="0" HorizontalAlignment="Right" Margin="0,0,10,3" VerticalAlignment="Bottom"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="DebugTab" Header="Debug" Margin="0,0,0,0" HorizontalAlignment="Right">
+                <Grid Background="#FFE5E5E5">
+                    <Label x:Name="ImageCachePathLabel_Debug" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="ImageCachePathBox_Debug" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
+                    <CheckBox x:Name="Cache0KBCheckBox" Content="Generate 0KB files" HorizontalAlignment="Left" Margin="10,51,0,0" VerticalAlignment="Top"/>
+                    <CheckBox x:Name="CacheNestedCheckBox" Content="Generate nested cache(s)" HorizontalAlignment="Left" Margin="10,71,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+                    <CheckBox x:Name="CachePermsCheckBox" Content="Generate bad read/write permissions" HorizontalAlignment="Left" Margin="10,91,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+                    <ComboBox x:Name="CacheSizeComboBox" HorizontalAlignment="Left" Margin="10,111,0,0" VerticalAlignment="Top" Width="120">
+                        <ComboBoxItem x:Name="CacheSizeSmall" Content="Small" HorizontalAlignment="Left" Width="118" IsSelected="True"/>
+                        <ComboBoxItem x:Name="CacheSizeMedium" Content="Medium" HorizontalAlignment="Left" Width="118"/>
+                        <ComboBoxItem x:Name="CacheSizeLarge" Content="Large" HorizontalAlignment="Left" Width="118"/>
+                    </ComboBox>
+                    <Label Content="Cache Size" HorizontalAlignment="Left" Margin="135,106,0,0" VerticalAlignment="Top"/>
+                    <Button x:Name="DebugGenerateCache" Content="Generate" HorizontalAlignment="Left" Margin="10,168,0,0" VerticalAlignment="Top" Width="75" Click="DebugGenerateCache_Click"/>
+                    <ListBox x:Name="Results_Debug" HorizontalAlignment="Stretch" Margin="10,197,10,30" VerticalAlignment="Stretch"/>
+                    <TextBox x:Name="DebugCacheGeneratorSeed" HorizontalAlignment="Left" Height="23" Margin="10,138,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="42" TextChanged="DebugCacheGeneratorSeed_TextChanged"/>
+                    <Label Content="Seed (leave blank for random seed)" HorizontalAlignment="Left" Margin="52,135,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>
