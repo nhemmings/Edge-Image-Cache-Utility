@@ -24,6 +24,7 @@
                         </ListView.View>
                     </ListView>
                     <CheckBox x:Name="_0kbFixNestedCache" Content="Fix Nested Cache" HorizontalAlignment="Center" Margin="340,53,0,0" VerticalAlignment="Top" IsEnabled="False"/>
+                    <ProgressBar x:Name="FindProgressBar" HorizontalAlignment="Left" Height="20" Margin="16,50,0,0" VerticalAlignment="Top" Width="211"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Delete Old Items">
@@ -47,6 +48,7 @@
                         </ListView.View>
                     </ListView>
                     <CheckBox x:Name="DeleteFixNestedCache" Content="Fix Nested Caches" HorizontalAlignment="Left" Margin="100,0,0,7" VerticalAlignment="Bottom" IsEnabled="False"/>
+                    <ProgressBar x:Name="DeleteProgressBar" HorizontalAlignment="Left" Height="20" Margin="295,57,0,0" VerticalAlignment="Top" Width="150"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="InaccessibleFilesTab" Header="Inaccessible Files/Folders" Visibility="Hidden">

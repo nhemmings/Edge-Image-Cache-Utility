@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 
 
+
 namespace ImageCacheUtility
 {
     /// <summary>
@@ -21,6 +22,7 @@ namespace ImageCacheUtility
     /// </summary>
     public partial class MainWindow : Window
     {
+
         private bool zeroKBFound, oldFilesFound;
         private int oldFilesCount;
         private long oldFilesSize;
@@ -39,10 +41,12 @@ namespace ImageCacheUtility
             DebugTab.Visibility = Visibility.Visible;
         }
 
-        private void Find_Click(object sender, RoutedEventArgs e)
+        private async void Find_Click(object sender, RoutedEventArgs e)
         {
             if (!_CheckCacheExistsWithPrompt())
                 return;
+
+            FindProgressBar.IsIndeterminate = true;
 
             _0kbFixNestedCache.IsEnabled = false;
             zeroKBFound = false;
@@ -52,8 +56,13 @@ namespace ImageCacheUtility
             action.ClearLists();       //clear lists of files in action
             Zero_KB_Files.Items.Clear();//clear listview
             action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-            action.FindFiles();
-
+            Find_Delete.IsEnabled = false;
+            await Task.Run(() =>
+            {
+                Console.WriteLine("Finding files");
+                action.FindFiles();
+                Console.WriteLine("found files");
+            });
             for (int i = 0; i < action.ReturnFileInfo().Count; i++)
             {
                 if (action.ReturnFileInfo()[i].Length == 0)
@@ -93,7 +102,7 @@ namespace ImageCacheUtility
             }
 
             if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
-                {
+            {
                 InaccessibleFilesTab.Visibility = Visibility.Visible;
                 for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
                 {
@@ -101,6 +110,9 @@ namespace ImageCacheUtility
                 }
                 InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
             }
+                    
+            FindProgressBar.IsIndeterminate = false;
+            Find_Delete.IsEnabled = true;
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
@@ -120,7 +132,7 @@ namespace ImageCacheUtility
             action.ClearLists(); //clear list of files in action
         }
 
-        private void Find_Delete_Click(object sender, RoutedEventArgs e)
+        private async void Find_Delete_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
             if (!_CheckCacheExistsWithPrompt())
@@ -145,8 +157,12 @@ namespace ImageCacheUtility
                 oldFilesFound = false;
                 action.ClearLists(); // clear list of files in action
                 action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
-                action.FindFiles();
-
+                DeleteProgressBar.IsIndeterminate = true;
+                Find.IsEnabled = false;
+                await Task.Run(() =>
+                {
+                    action.FindFiles();
+                });
                 for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                 {
                    if (action.ReturnFileInfo()[i].LastWriteTime < DesiredRemovalDate.DisplayDate)
@@ -184,7 +200,9 @@ namespace ImageCacheUtility
                 }
                 _ConvertBytes();
                 CountValue.Content = oldFilesCount;
-                FileSizeValue.Content = oldFilesSize + " " + sizeLabel;  
+                FileSizeValue.Content = oldFilesSize + " " + sizeLabel;
+                DeleteProgressBar.IsIndeterminate = false;
+                Find.IsEnabled = true;
             }
         }
 
@@ -358,6 +376,7 @@ namespace ImageCacheUtility
             _0kbFixNestedCache.IsEnabled = false;
             DeleteFixNestedCache.IsEnabled = false;
         }
+ 
     }
 }
 

@@ -136,7 +136,7 @@ namespace ImageCacheUtility
         }
 
         /*for each nested cache it recursively goes through the nested cache and sees if the folder exists in the parent folder if not it creates it.
-        then it copies the files that do not exist to the parent folder*/
+        then it copies the files that do not exist to the parent folder and then deletes the nested folder*/
         public void CleanUpNestedCaches() 
         {
             for (int i = 0; i < nestedCaches.Count; i++)
