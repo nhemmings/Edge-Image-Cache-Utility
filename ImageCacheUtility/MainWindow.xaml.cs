@@ -23,7 +23,7 @@ namespace ImageCacheUtility
     public partial class MainWindow : Window
     {
 
-        private bool zeroKBFound, oldFilesFound;
+        private bool zeroKBFound, oldFilesFound, pathChange = true;
         private int oldFilesCount;
         private long oldFilesSize;
         private string sizeLabel;
@@ -46,26 +46,33 @@ namespace ImageCacheUtility
             if (!_CheckCacheExistsWithPrompt())
                 return;
 
-            FindProgressBar.IsIndeterminate = true;
-
-            _0kbFixNestedCache.IsEnabled = false;
             zeroKBFound = false;
-            InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
-            InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
-            action.ClearInaccessibleFiles(); //clear inaccessible files list
-            action.ClearLists();       //clear lists of files in action
             Zero_KB_Files.Items.Clear();//clear listview
-            action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
-            Find_Delete.IsEnabled = false;
-            await Task.Run(() =>
+
+
+            if (pathChange == true)
             {
-                Console.WriteLine("Finding files");
-                action.FindFiles();
-                Console.WriteLine("found files");
-            });
+                Find_Delete.IsEnabled = false;
+                FindProgressBar.IsIndeterminate = true;
+                _0kbFixNestedCache.IsEnabled = false;
+                InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
+                InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
+                action.ClearInaccessibleFiles(); //clear inaccessible files list
+                action.ClearLists();       //clear lists of files in action
+                action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
+                MessageBox.Show("Finding files this process can take a long time", "", MessageBoxButton.OK);
+                await Task.Run(() =>
+                {
+                    action.FindFiles();
+                });
+            }
             for (int i = 0; i < action.ReturnFileInfo().Count; i++)
             {
-                if (action.ReturnFileInfo()[i].Length == 0)
+                if (action.ReturnFileInfo()[i] is null)
+                {
+                    continue;
+                }
+                else if (action.ReturnFileInfo()[i].Length == 0)
                 {
                     if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
                     {
@@ -113,6 +120,7 @@ namespace ImageCacheUtility
                     
             FindProgressBar.IsIndeterminate = false;
             Find_Delete.IsEnabled = true;
+            pathChange = false;
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
@@ -129,7 +137,6 @@ namespace ImageCacheUtility
             }
             _0kbFixNestedCache.IsEnabled = false;
             Zero_KB_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
-            action.ClearLists(); //clear list of files in action
         }
 
         private async void Find_Delete_Click(object sender, RoutedEventArgs e)
@@ -138,15 +145,6 @@ namespace ImageCacheUtility
             if (!_CheckCacheExistsWithPrompt())
                 return;
 
-            DeleteFixNestedCache.IsEnabled = false;
-            oldFilesSize = 0;
-            oldFilesCount = 0;
-            InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
-            InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
-            action.ClearInaccessibleFiles(); //clear inaccessible files list
-            Results_Old_Files.Items.Clear();//clear listview
-            action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
-
             //check for date in past or it will not run todays date will delete entire cache probably not what they want
             if (DesiredRemovalDate.DisplayDate.Date >= DateTime.Now.Date)
             {
@@ -154,18 +152,36 @@ namespace ImageCacheUtility
             }
             else
             {
+
+                oldFilesSize = 0;
+                oldFilesCount = 0;
+                Results_Old_Files.Items.Clear();//clear listview
                 oldFilesFound = false;
-                action.ClearLists(); // clear list of files in action
+                DeleteFixNestedCache.IsEnabled = false;
                 action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
-                DeleteProgressBar.IsIndeterminate = true;
-                Find.IsEnabled = false;
-                await Task.Run(() =>
+
+                if (pathChange == true)
                 {
-                    action.FindFiles();
-                });
+                    InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
+                    InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
+                    action.ClearInaccessibleFiles(); //clear inaccessible files list
+                    action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
+                    action.ClearLists(); // clear list of files in action
+                    DeleteProgressBar.IsIndeterminate = true;
+                    Find.IsEnabled = false;
+                    MessageBox.Show("Finding files this process can take a long time", "", MessageBoxButton.OK);
+                    await Task.Run(() =>
+                    {
+                        action.FindFiles();
+                    });
+                }
                 for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                 {
-                   if (action.ReturnFileInfo()[i].LastWriteTime < DesiredRemovalDate.DisplayDate)
+                   if(action.ReturnFileInfo()[i] is null)
+                    {
+                        continue;
+                    }    
+                   else if (action.ReturnFileInfo()[i].LastWriteTime < DesiredRemovalDate.DisplayDate)
                    { 
                         Results_Old_Files.Items.Add(new MyItemOldFile { FilePath = action.ReturnFileInfo()[i].ToString(), LastModifiedDate = action.ReturnFileInfo()[i].LastWriteTime.ToString() });
                         oldFilesCount++;
@@ -203,6 +219,7 @@ namespace ImageCacheUtility
                 FileSizeValue.Content = oldFilesSize + " " + sizeLabel;
                 DeleteProgressBar.IsIndeterminate = false;
                 Find.IsEnabled = true;
+                pathChange = false;
             }
         }
 
@@ -235,7 +252,6 @@ namespace ImageCacheUtility
                 }
                 DeleteFixNestedCache.IsEnabled = false;
                 Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
-                action.ClearLists(); // clear list of files in action
                 FileSizeValue.Content = ""; //resets file size value label
                 CountValue.Content = ""; //resets count label
             }
@@ -271,6 +287,7 @@ namespace ImageCacheUtility
             ImageCachePathBox.Text = action.CachePath;
             ImageCachePathBox_Delete.Text = action.CachePath;
             ImageCachePathBox_Debug.Text = action.CachePath;
+            pathChange = true;
         }
 
         private void DebugCacheGeneratorSeed_TextChanged(object sender, TextChangedEventArgs e) {

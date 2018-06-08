@@ -39,9 +39,21 @@ namespace ImageCacheUtility
                 //passes the full path of each item in the 0kb full path array to the delete command
                 for (int i = 0; i < accessibleFilesInfo.Count; i++)
                 {
-                    if (accessibleFilesInfo[i].Length == 0)
+                    if (accessibleFilesInfo[i] is null)
                     {
-                        File.Delete(accessibleFilesInfo[i].ToString());
+                        continue;
+                    }
+                    else if (accessibleFilesInfo[i].Length == 0)
+                    {
+                        try { 
+                            File.Delete(accessibleFilesInfo[i].ToString());
+                            accessibleFilesInfo[i] = null;
+                        }
+                        catch(Exception ex)
+                        {
+                            MessageBox.Show("Could not delete " + accessibleFilesInfo[i].ToString() + " the file may be open in another program.", "Could not delete file");
+                            Trace.TraceError(ex.ToString());
+                        }
                     }
                 }
                 MessageBox.Show("Empty Files Deleted", "Delete Empty Files Complete");
@@ -81,8 +93,18 @@ namespace ImageCacheUtility
                 //passes the full path of each item in the old files full path  array to the delete command
                 for (int i = 0; i < accessibleFilesInfo.Count; i++)
                 {
-                    if (accessibleFilesInfo[i].LastWriteTime < oldDate) { 
-                        File.Delete(accessibleFilesInfo[i].ToString());
+                    if (accessibleFilesInfo[i] is null) { continue; }
+                    else if (accessibleFilesInfo[i].LastWriteTime < oldDate)
+                    {
+                        try { 
+                            File.Delete(accessibleFilesInfo[i].ToString());
+                            accessibleFilesInfo[i] = null;
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show("Could not delete " + accessibleFilesInfo[i].ToString() + " the file may be open in another program.", "Could not delete file");
+                            Trace.TraceError(ex.ToString());
+                        }
                     }
                 }
                 MessageBox.Show("Old Files Deleted", "Delete Old Files Complete");
