@@ -8,14 +8,28 @@
         Title="Image Cache Utility" Height="700" Width="800" MinWidth="800" MinHeight="700">
     <Grid Margin="0,0,0,0">
         <TabControl x:Name="MainWindowTabControl" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
-            <TabItem Header="Clear 0 KB Files" IsSelected="True">
+            <TabItem Header="Analyze">
                 <Grid Background="#FFE5E5E5">
                     <Label x:Name="ImageCachePathLabel" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
-                    <Button x:Name="Find" Content="Find" HorizontalAlignment="Center" Margin="-125,50,0,0" VerticalAlignment="Top" Width="75" Click="Find_Click"/>
-                    <Button x:Name="Fix" Content="Fix" HorizontalAlignment="Center" Margin="125,50,0,0" VerticalAlignment="Top" Width="75" Click="Fix_Click" IsEnabled="False"/>
-                    <CheckBox x:Name="ReturnFullPathCheckBox" Content="Return Full Path" HorizontalAlignment="Right" Margin="0,0,10,7" VerticalAlignment="Bottom" IsChecked="True"/>
-                    <ListView x:Name="Zero_KB_Files" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,100,10,30">
+                    <TextBox x:Name="ImageCachePathBox" HorizontalAlignment="Stretch" Height="23" Margin="118,13,98,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
+                    <Button x:Name="Analyze" Content="Analyze" HorizontalAlignment="Right" Margin="0,13,10,0" VerticalAlignment="Top" Width="75" Click="Analyze_Click" Height="23"/>
+                    <Button x:Name="FixZeroKB" Content="Fix 0KB Files" HorizontalAlignment="Center" Margin="-125,50,0,0" VerticalAlignment="Top" Width="75" Click="Fix_Click" IsEnabled="False"/>
+                    <Button x:Name="Fix_Nested_Cache" Content="Fix Nested Cache" HorizontalAlignment="Center" Margin="125,50,0,0" VerticalAlignment="Top" Width="102" IsEnabled="False" Click="FixNestedCacheClick"/>
+                    <ProgressBar x:Name="AnalyzeProgressBar" HorizontalAlignment="Left" Height="20" Margin="16,50,0,0" VerticalAlignment="Top" Width="211"/>
+                    <Line Fill="Black"  X2="774" Y1="80" Y2="80" Stroke="Black" X1="10" Stretch="Fill" VerticalAlignment="Top" Margin="0,80,0,0"/>
+                    <Label Content="Clean Up Old Files" HorizontalAlignment="Left" Margin="10,90,0,0" VerticalAlignment="Top"/>
+                    <Label Content="Delete Date:" HorizontalAlignment="Left" Margin="10,115,0,0" VerticalAlignment="Top"/>
+                    <DatePicker x:Name="DesiredRemovalDate" HorizontalAlignment="Left" Margin="90,117,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" SelectedDateChanged="DatePicker_SelectedDateChanged"/>
+                    <Button x:Name="FindOldFiles" Content="Find Files" HorizontalAlignment="Left" Margin="205,117,9,0" VerticalAlignment="Top" Width="69" Height="23" IsEnabled="False" Click="Find_Old_Files_Click"/>
+                    <Button x:Name="DeleteOldFiles" Content="Delete" HorizontalAlignment="Left" Margin="285,117,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="Delete_Click"/>
+                    <ListBox x:Name="AnalysisResults" HorizontalAlignment="Stretch" Margin="10,150,10,10" VerticalAlignment="Stretch"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="0 KB Files">
+                <Grid Background="#FFE5E5E5">
+                    <CheckBox x:Name="ReturnFullPathCheckBox" Content="Full Path" HorizontalAlignment="Right" Margin="0,0,10,7" VerticalAlignment="Bottom" IsChecked="True"/>
+                    <ListView x:Name="Zero_KB_Files" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="10,10,10,30">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn DisplayMemberBinding="{Binding Path=ZeroKBFilePath}" Header="File Path" Width="Auto"/>
@@ -23,23 +37,15 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <CheckBox x:Name="_0kbFixNestedCache" Content="Fix Nested Cache" HorizontalAlignment="Center" Margin="340,53,0,0" VerticalAlignment="Top" IsEnabled="False"/>
-                    <ProgressBar x:Name="FindProgressBar" HorizontalAlignment="Left" Height="20" Margin="16,50,0,0" VerticalAlignment="Top" Width="211"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Delete Old Items">
+            <TabItem Header="Old Files">
                 <Grid Background="#FFE5E5E5">
-                    <Label x:Name="ImageCachePathLabel_Delete" Content="Image Cache Path:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox x:Name="ImageCachePathBox_Delete" HorizontalAlignment="Stretch" Height="23" Margin="118,13,10,0" TextWrapping="Wrap" VerticalAlignment="Top" TextChanged="_CachePathTextChanged"/>
-                    <DatePicker x:Name="DesiredRemovalDate" HorizontalAlignment="Left" Margin="90,55,0,0" VerticalAlignment="Top" SelectedDateFormat="Short" SelectedDateChanged="DatePicker_SelectedDateChanged"/>
-                    <Button x:Name="Delete" Content="Delete All" HorizontalAlignment="Left" Margin="10,0,0,5" VerticalAlignment="Bottom" Width="75" Height="20" Click="Delete_Click" IsEnabled="False"/>
-                    <Label Content="Delete Date:" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top"/>
-                    <Button x:Name="Find_Delete" Content="Find" HorizontalAlignment="Left" Margin="205,57,0,0" VerticalAlignment="Top" Width="75" Click="Find_Delete_Click"/>
                     <Label x:Name="CountLabel" Content="Count:" HorizontalAlignment="Right" Margin="383,0,50,3" VerticalAlignment="Bottom"/>
                     <Label x:Name="CountValue" Content="0" HorizontalAlignment="Right" Margin="424,0,10,3" VerticalAlignment="Bottom"/>
                     <Label x:Name="FileSizeLabel" Content="Total File Size:" HorizontalAlignment="Center" Margin="0,0,100,3" VerticalAlignment="Bottom"/>
                     <Label x:Name="FileSizeValue" Content="" HorizontalAlignment="Center" Margin="20,0,0,3" VerticalAlignment="Bottom"/>
-                    <ListView x:Name="Results_Old_Files" HorizontalAlignment="Stretch" Margin="10,100,10,30" VerticalAlignment="Stretch">
+                    <ListView x:Name="Results_Old_Files" HorizontalAlignment="Stretch" Margin="10,10,10,30" VerticalAlignment="Stretch">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn DisplayMemberBinding="{Binding Path= FilePath}" Header="File Path" Width="Auto"/>
@@ -47,8 +53,6 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <CheckBox x:Name="DeleteFixNestedCache" Content="Fix Nested Caches" HorizontalAlignment="Left" Margin="100,0,0,7" VerticalAlignment="Bottom" IsEnabled="False"/>
-                    <ProgressBar x:Name="DeleteProgressBar" HorizontalAlignment="Left" Height="20" Margin="295,57,0,0" VerticalAlignment="Top" Width="150"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="InaccessibleFilesTab" Header="Inaccessible Files/Folders" Visibility="Hidden">

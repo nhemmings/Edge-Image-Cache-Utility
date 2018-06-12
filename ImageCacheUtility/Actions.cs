@@ -63,7 +63,6 @@ namespace ImageCacheUtility
         public void SetCachePath(string path)
         {
             CachePath = path;
-
         }
 
         public void SetDate(DateTime date)
