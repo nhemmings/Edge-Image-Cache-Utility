@@ -380,6 +380,41 @@ namespace ImageCacheUtility
             Fix_Nested_Cache.IsEnabled = false;
             FindOldFiles.IsEnabled = false;
         }
+
+        private void _Toggle0KBOutput(object sender, RoutedEventArgs e)
+        {
+            if (action.ReturnFileInfo().Count > 0)
+            {
+                Zero_KB_Files.Items.Clear();
+                for (int i = 0; i < action.ReturnFileInfo().Count; i++)
+                {
+                    if (action.ReturnFileInfo()[i] is null)
+                    {
+                        continue;
+                    }
+                    else if (action.ReturnFileInfo()[i].Length == 0)
+                    {
+                        if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].ToString(),
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        else
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].Name,
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        zeroKBFound = true;
+                    }
+                }
+            }
+        }
  
     }
 }
