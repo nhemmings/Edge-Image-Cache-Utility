@@ -93,7 +93,7 @@ namespace ImageCacheUtility
                 for (int i = 0; i < accessibleFilesInfo.Count; i++)
                 {
                     if (accessibleFilesInfo[i] is null) { continue; }
-                    else if (accessibleFilesInfo[i].LastWriteTime < oldDate)
+                    else if (accessibleFilesInfo[i].LastWriteTime.Date <= oldDate)
                     {
                         try { 
                             File.Delete(accessibleFilesInfo[i].ToString());
