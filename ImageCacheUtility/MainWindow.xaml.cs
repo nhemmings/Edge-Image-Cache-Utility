@@ -105,15 +105,17 @@ namespace ImageCacheUtility
                 {
                     AnalysisResults.Items.Add("Found " + Zero_KB_Files.Items.Count + " 0KB files.");
                     FixZeroKB.IsEnabled = true;
-                    if (action.ReturnNestedCaches().Count > 0)
-                    {
-                        Fix_Nested_Cache.IsEnabled = true;
-                        action.ReturnNestedCacheInfo();
-                    }
+
                 }
                 else
                 {
                     MessageBox.Show("No empty files found.", "No Empty Files");
+                }
+
+                if (action.ReturnNestedCaches().Count > 0)
+                {
+                    Fix_Nested_Cache.IsEnabled = true;
+                    action.ReturnNestedCacheInfo();
                 }
 
                 if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
