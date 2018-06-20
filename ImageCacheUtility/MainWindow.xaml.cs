@@ -27,6 +27,7 @@ namespace ImageCacheUtility
         private int oldFilesCount;
         private long oldFilesSize;
         private string sizeLabel;
+        private DateTime startTime, endTime;
         Actions action = new Actions(); //initialize action class
 
         public MainWindow()
@@ -41,114 +42,124 @@ namespace ImageCacheUtility
             DebugTab.Visibility = Visibility.Visible;
         }
 
-        private async void Find_Click(object sender, RoutedEventArgs e)
+        private async void Analyze_Click(object sender, RoutedEventArgs e)
         {
             if (!_CheckCacheExistsWithPrompt())
                 return;
 
             zeroKBFound = false;
             Zero_KB_Files.Items.Clear();//clear listview
-
+            Analyze.IsEnabled = false;
 
             if (pathChange == true)
             {
-                Find_Delete.IsEnabled = false;
-                FindProgressBar.IsIndeterminate = true;
-                _0kbFixNestedCache.IsEnabled = false;
+                AnalysisResults.Items.Clear();
+                FixZeroKB.IsEnabled = false;
+                AnalyzeProgressBar.IsIndeterminate = true;
+                Fix_Nested_Cache.IsEnabled = false;
                 InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
                 InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
                 action.ClearInaccessibleFiles(); //clear inaccessible files list
                 action.ClearLists();       //clear lists of files in action
                 action.SetCachePath(ImageCachePathBox.Text);    //seth cache path with path provided
                 MessageBox.Show("Finding files this process can take a long time", "", MessageBoxButton.OK);
+                startTime = DateTime.Now;
                 await Task.Run(() =>
                 {
                     action.FindFiles();
                 });
+                endTime = DateTime.Now;
+                AnalysisResults.Items.Add("Scanning cache took " + (endTime - startTime).Minutes + " minutes and " + (endTime-startTime).Seconds + " seconds.");
             }
-            for (int i = 0; i < action.ReturnFileInfo().Count; i++)
+            if (action.ReturnFileInfo().Count > 0)
             {
-                if (action.ReturnFileInfo()[i] is null)
+                for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                 {
-                    continue;
-                }
-                else if (action.ReturnFileInfo()[i].Length == 0)
-                {
-                    if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
+                    if (action.ReturnFileInfo()[i] is null)
                     {
-                        Zero_KB_Files.Items.Add(new MyItem0KB
-                        {
-                            ZeroKBFilePath = action.ReturnFileInfo()[i].ToString(),
-                            ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
-                        });
+                        continue;
                     }
-                    else
+                    else if (action.ReturnFileInfo()[i].Length == 0)
                     {
-                        Zero_KB_Files.Items.Add(new MyItem0KB
+                        if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
                         {
-                            ZeroKBFilePath = action.ReturnFileInfo()[i].Name,
-                            ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
-                        });
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].ToString(),
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        else
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].Name,
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        zeroKBFound = true;
                     }
-                    zeroKBFound = true;
                 }
-            }
 
-            if (zeroKBFound == true)
-            {
-                Fix.IsEnabled = true;
+                if (zeroKBFound == true)
+                {
+                    AnalysisResults.Items.Add("Found " + Zero_KB_Files.Items.Count + " 0KB files.");
+                    FixZeroKB.IsEnabled = true;
+
+                }
+                else
+                {
+                    MessageBox.Show("No empty files found.", "No Empty Files");
+                }
+
                 if (action.ReturnNestedCaches().Count > 0)
                 {
-                    _0kbFixNestedCache.IsEnabled = true;
+                    Fix_Nested_Cache.IsEnabled = true;
                     action.ReturnNestedCacheInfo();
                 }
+
+                if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
+                {
+                    InaccessibleFilesTab.Visibility = Visibility.Visible;
+                    for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
+                    {
+                        InaccessibleFiles.Items.Add(new MyItemInaccessibleFiles { InaccessibleFileList = action.ReturnInaccessibleFiles()[i] });
+                    }
+                    InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
+                    AnalysisResults.Items.Add("Found " + action.ReturnInaccessibleFiles().Count + " inaccessible files.");
+                }
+                FindOldFiles.IsEnabled = true;
             }
             else
             {
-                MessageBox.Show("No empty files found.", "No Empty Files");
+                MessageBox.Show("No Files Found", "No Files");
+                FindOldFiles.IsEnabled = false;
             }
-
-            if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
-            {
-                InaccessibleFilesTab.Visibility = Visibility.Visible;
-                for (int i = 0; i < action.ReturnInaccessibleFiles().Count; i++)
-                {
-                    InaccessibleFiles.Items.Add(new MyItemInaccessibleFiles { InaccessibleFileList = action.ReturnInaccessibleFiles()[i] });
-                }
-                InaccessibleFilesCount.Content = action.ReturnInaccessibleFiles().Count;
-            }
-                    
-            FindProgressBar.IsIndeterminate = false;
-            Find_Delete.IsEnabled = true;
+            AnalyzeProgressBar.IsIndeterminate = false;
             pathChange = false;
+            Analyze.IsEnabled = true;
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
         {
             if (!_CheckCacheExistsWithPrompt())
                 return;
-           
-            Fix.IsEnabled = false;
+
+            FixZeroKB.IsEnabled = false;
             action.FixEmptyFiles();
-            if(_0kbFixNestedCache.IsChecked == true)
-            {
-                action.CleanUpNestedCaches();
-                _0kbFixNestedCache.IsChecked = false;
-            }
-            _0kbFixNestedCache.IsEnabled = false;
             Zero_KB_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
         }
 
-        private async void Find_Delete_Click(object sender, RoutedEventArgs e)
+        private void Find_Old_Files_Click(object sender, RoutedEventArgs e)
         {
             //they must have a cache path or it will not run
             if (!_CheckCacheExistsWithPrompt())
                 return;
 
             //check for date in past or it will not run todays date will delete entire cache probably not what they want
-            if (DesiredRemovalDate.DisplayDate.Date >= DateTime.Now.Date)
+            if (DesiredRemovalDate.DisplayDate.Date > DateTime.Now.Date)
             {
-                MessageBox.Show("The delete date is today's date or a future date. Please select a date in the past.", "Removal Date Is Not In Past");
+                MessageBox.Show("The delete date is a future date. Please select today or a date in the past.", "Removal Date Is In The Future");
             }
             else
             {
@@ -157,54 +168,34 @@ namespace ImageCacheUtility
                 oldFilesCount = 0;
                 Results_Old_Files.Items.Clear();//clear listview
                 oldFilesFound = false;
-                DeleteFixNestedCache.IsEnabled = false;
                 action.SetDate(DesiredRemovalDate.DisplayDate); //set delete date based off of date picker
 
-                if (pathChange == true)
-                {
-                    InaccessibleFilesTab.Visibility = Visibility.Hidden; //hide inaccessible files tab
-                    InaccessibleFiles.Items.Clear(); //clear inaccessible files tab list view
-                    action.ClearInaccessibleFiles(); //clear inaccessible files list
-                    action.SetCachePath(ImageCachePathBox_Delete.Text); //set path with path provided in Delete Old Items tab
-                    action.ClearLists(); // clear list of files in action
-                    DeleteProgressBar.IsIndeterminate = true;
-                    Find.IsEnabled = false;
-                    MessageBox.Show("Finding files this process can take a long time", "", MessageBoxButton.OK);
-                    await Task.Run(() =>
-                    {
-                        action.FindFiles();
-                    });
-                }
                 for (int i = 0; i < action.ReturnFileInfo().Count; i++)
                 {
-                   if(action.ReturnFileInfo()[i] is null)
+                    if (action.ReturnFileInfo()[i] is null)
                     {
                         continue;
-                    }    
-                   else if (action.ReturnFileInfo()[i].LastWriteTime < DesiredRemovalDate.DisplayDate)
-                   { 
+                    }
+                    else if (action.ReturnFileInfo()[i].LastWriteTime.Date <= DesiredRemovalDate.DisplayDate)
+                    {
                         Results_Old_Files.Items.Add(new MyItemOldFile { FilePath = action.ReturnFileInfo()[i].ToString(), LastModifiedDate = action.ReturnFileInfo()[i].LastWriteTime.ToString() });
                         oldFilesCount++;
                         oldFilesSize += action.ReturnFileInfo()[i].Length;
                         oldFilesFound = true;
-                   }
-                }
-                if(oldFilesFound == true)
-                {
-                    Delete.IsEnabled = true;
-                    //enable checkbox if there are nested caches
-                    if (action.ReturnNestedCaches().Count > 0)
-                    {
-                        DeleteFixNestedCache.IsEnabled = true;
-                        action.ReturnNestedCacheInfo();
                     }
+                }
+                if (oldFilesFound == true)
+                {
+                    DeleteOldFiles.IsEnabled = true;
+                    AnalysisResults.Items.Add("Found " + Results_Old_Files.Items.Count + " old files.");
+
                 }
                 else
                 {
-                    Delete.IsEnabled = false;
+                    DeleteOldFiles.IsEnabled = false;
                     MessageBox.Show("No old files found.", "No Old Files");
                 }
-                    
+
                 if (action.ReturnInaccessibleFiles().Count > 0) //if there are inaccessible files make the inaccessible files tab visible and add the file names to the list view
                 {
                     InaccessibleFilesTab.Visibility = Visibility.Visible;
@@ -217,16 +208,20 @@ namespace ImageCacheUtility
                 _ConvertBytes();
                 CountValue.Content = oldFilesCount;
                 FileSizeValue.Content = oldFilesSize + " " + sizeLabel;
-                DeleteProgressBar.IsIndeterminate = false;
-                Find.IsEnabled = true;
                 pathChange = false;
             }
+        }
+
+        public void FixNestedCacheClick(object sender, RoutedEventArgs e)
+        {
+            action.CleanUpNestedCaches();
+            Fix_Nested_Cache.IsEnabled = false;
         }
 
         private void DatePicker_SelectedDateChanged(object sender, SelectionChangedEventArgs e)
         {
             //date picker listener listens for the date picker to be changed and updates the display date to match
-            Delete.IsEnabled = false;
+            DeleteOldFiles.IsEnabled = false;
             var picker = sender as DatePicker;
             DateTime? date = picker.SelectedDate;
             DesiredRemovalDate.DisplayDate = date.Value;
@@ -243,14 +238,8 @@ namespace ImageCacheUtility
             //If they chose to proceed with the delete goes through delete process and clears lists
             if (messageBoxResult == MessageBoxResult.Yes)
             {
-                Delete.IsEnabled = false;//disables delete button
+                DeleteOldFiles.IsEnabled = false;//disables delete button
                 action.DeleteOldFiles(); //delete old files
-                if (DeleteFixNestedCache.IsChecked == true)
-                {
-                    action.CleanUpNestedCaches();
-                    DeleteFixNestedCache.IsChecked = false;
-                }
-                DeleteFixNestedCache.IsEnabled = false;
                 Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
                 FileSizeValue.Content = ""; //resets file size value label
                 CountValue.Content = ""; //resets count label
@@ -285,7 +274,6 @@ namespace ImageCacheUtility
             TextBox textBox = sender as TextBox;
             action.CachePath = textBox.Text;
             ImageCachePathBox.Text = action.CachePath;
-            ImageCachePathBox_Delete.Text = action.CachePath;
             ImageCachePathBox_Debug.Text = action.CachePath;
             pathChange = true;
         }
@@ -388,10 +376,45 @@ namespace ImageCacheUtility
         }
         private void _DisableItemsReset() //Resets items back to their disabled state
         {
-            Fix.IsEnabled = false;
-            Delete.IsEnabled = false;
-            _0kbFixNestedCache.IsEnabled = false;
-            DeleteFixNestedCache.IsEnabled = false;
+            FixZeroKB.IsEnabled = false;
+            DeleteOldFiles.IsEnabled = false;
+            Fix_Nested_Cache.IsEnabled = false;
+            FindOldFiles.IsEnabled = false;
+        }
+
+        private void _Toggle0KBOutput(object sender, RoutedEventArgs e)
+        {
+            if (action.ReturnFileInfo().Count > 0)
+            {
+                Zero_KB_Files.Items.Clear();
+                for (int i = 0; i < action.ReturnFileInfo().Count; i++)
+                {
+                    if (action.ReturnFileInfo()[i] is null)
+                    {
+                        continue;
+                    }
+                    else if (action.ReturnFileInfo()[i].Length == 0)
+                    {
+                        if (Convert.ToBoolean(ReturnFullPathCheckBox.IsChecked))
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].ToString(),
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        else
+                        {
+                            Zero_KB_Files.Items.Add(new MyItem0KB
+                            {
+                                ZeroKBFilePath = action.ReturnFileInfo()[i].Name,
+                                ZeroKBSize = action.ReturnFileInfo()[i].Length.ToString() + "KB"
+                            });
+                        }
+                        zeroKBFound = true;
+                    }
+                }
+            }
         }
  
     }
