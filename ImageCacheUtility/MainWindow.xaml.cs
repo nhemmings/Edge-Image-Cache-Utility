@@ -49,7 +49,7 @@ namespace ImageCacheUtility
 
             zeroKBFound = false;
             Zero_KB_Files.Items.Clear();//clear listview
-
+            Analyze.IsEnabled = false;
 
             if (pathChange == true)
             {
@@ -137,6 +137,7 @@ namespace ImageCacheUtility
             }
             AnalyzeProgressBar.IsIndeterminate = false;
             pathChange = false;
+            Analyze.IsEnabled = true;
         }
 
         private void Fix_Click(object sender, RoutedEventArgs e)
