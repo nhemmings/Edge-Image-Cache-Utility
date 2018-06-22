@@ -233,6 +233,46 @@ namespace ImageCacheUtility
         {
             _NestedCacheOutput();
         }
+
+        public void ArchiveOldFiles(string archivePath)
+        {
+            string archiveDirName = "EdgeImageCacheArchive-" + DateTime.Now.Month+"-"+DateTime.Now.Day+"-"+DateTime.Now.Year+"-"+DateTime.Now.Hour+"."+DateTime.Now.Minute;
+            Console.WriteLine(archiveDirName);
+            Directory.CreateDirectory(Path.Combine(archivePath,archiveDirName));
+            for (int i = 0; i < accessibleFilesInfo.Count; i++)
+            {
+                if (accessibleFilesInfo[i] is null) { continue; }
+                else if (accessibleFilesInfo[i].LastWriteTime.Date <= oldDate)
+                {
+                    //Console.WriteLine(accessibleFilesInfo[i].DirectoryName.ToString());
+                    string tempDirName = accessibleFilesInfo[i].DirectoryName.ToString();
+                    tempDirName = tempDirName.Remove(0, CachePath.Length + 1);
+                    //Console.WriteLine(tempDirName);
+                    string destination = Path.Combine(archivePath, archiveDirName, tempDirName);
+                    //Console.WriteLine(destination);
+                    Directory.CreateDirectory(Path.Combine(destination));
+                    string destFile = Path.Combine(destination,accessibleFilesInfo[i].Name);
+                    //Console.WriteLine(accessibleFilesInfo[i].ToString());
+                    //Console.WriteLine(destFile);
+                    File.Copy(accessibleFilesInfo[i].ToString(), destFile, false);
+                }
+            }
+        }
+        public bool VerifyArchive(string archivePath)
+        {
+            try
+            {
+                //Console.WriteLine(Path.Combine(archivePath,"test"));
+                Directory.CreateDirectory(Path.Combine(archivePath,"test"));
+                Directory.Delete(Path.Combine(archivePath, "test"));
+                return true;
+            }
+            catch(Exception e)
+            {
+                Trace.TraceError(e.ToString());
+                return false;
+            }
+        }
     }
 }
 

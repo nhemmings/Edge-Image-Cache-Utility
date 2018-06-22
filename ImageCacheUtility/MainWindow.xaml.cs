@@ -53,6 +53,8 @@ namespace ImageCacheUtility
 
             if (pathChange == true)
             {
+                Archive_Checkbox.IsChecked = false;
+                Archive_Checkbox.IsEnabled = false;
                 AnalysisResults.Items.Clear();
                 FixZeroKB.IsEnabled = false;
                 AnalyzeProgressBar.IsIndeterminate = true;
@@ -188,7 +190,7 @@ namespace ImageCacheUtility
                 {
                     DeleteOldFiles.IsEnabled = true;
                     AnalysisResults.Items.Add("Found " + Results_Old_Files.Items.Count + " old files.");
-
+                    Archive_Checkbox.IsEnabled = true;
                 }
                 else
                 {
@@ -228,21 +230,86 @@ namespace ImageCacheUtility
 
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        async private void Delete_Click(object sender, RoutedEventArgs e)
         {
-            //Message box to display size of files being deleted and allows the operator to back out before the delete occurs
-            MessageBoxResult messageBoxResult = MessageBox.Show(
-                    "You are about to delete " + oldFilesSize + " " + sizeLabel +
-                    "\n would you like to proceed?", "Delete Prompt", MessageBoxButton.YesNo);
-
-            //If they chose to proceed with the delete goes through delete process and clears lists
-            if (messageBoxResult == MessageBoxResult.Yes)
+            if (Archive_Checkbox.IsChecked == true)
             {
-                DeleteOldFiles.IsEnabled = false;//disables delete button
-                action.DeleteOldFiles(); //delete old files
-                Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
-                FileSizeValue.Content = ""; //resets file size value label
-                CountValue.Content = ""; //resets count label
+                if (Archive_Path.Text == "" || Archive_Path.Text == null)
+                {
+                    MessageBox.Show("Archive path is empty Please insert an archive path or uncheck the box to archive the old files.", "Archive Path Empty");
+                }
+                else
+                {
+                    if (Archive_Path.Text.Length >= ImageCachePathBox.Text.Length)
+                    {
+                        if (Archive_Path.Text.Substring(0, ImageCachePathBox.Text.Length) == ImageCachePathBox.Text)
+                        {
+                            MessageBox.Show("Archive location is in the image cache please change the archive path.", "Archive Location In Image Cache");
+                        }
+                    }
+                    else
+                    {
+                        if (action.VerifyArchive(Archive_Path.Text))
+                        {
+                            //Message box to display size of files being deleted and allows the operator to back out before the delete occurs
+                            MessageBoxResult archiveMessageBoxResult = MessageBox.Show(
+                                    "You are about to archive and delete " + oldFilesSize + " " + sizeLabel +
+                                    "\n would you like to proceed?", "Delete Prompt", MessageBoxButton.YesNo);
+
+                            //If they chose to proceed with the delete goes through delete process and clears lists
+                            if (archiveMessageBoxResult == MessageBoxResult.Yes)
+                            {
+                                string archivePath = Archive_Path.Text; //needed a local variable as I cannot access UI variable in await
+                                AnalyzeProgressBar.IsIndeterminate = true;
+                                await Task.Run(() => {
+                                    action.ArchiveOldFiles(archivePath);
+                                });
+                                await Task.Run(() => {
+                                    action.DeleteOldFiles(); //delete old files
+                                });
+                                AnalyzeProgressBar.IsIndeterminate = false;
+                                Archive_Checkbox.IsEnabled = false;
+                                Archive_Checkbox.IsChecked = false;
+                                Archive_Path.Text = "";
+                                DeleteOldFiles.IsEnabled = false;//disables delete button
+                                Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
+                                FileSizeValue.Content = ""; //resets file size value label
+                                CountValue.Content = ""; //resets count label
+                            }
+
+                        }
+                        else
+                        {
+                            MessageBox.Show("The archive location is inaccessible make sure it exists or that there are appropriate permissions to access this folder", "Archive Location Inaccessible");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                //Message box to display size of files being deleted and allows the operator to back out before the delete occurs
+                MessageBoxResult deleteMessageBoxResult = MessageBox.Show(
+                        "You are about to delete " + oldFilesSize + " " + sizeLabel +
+                        "\n would you like to proceed?", "Delete Prompt", MessageBoxButton.YesNo);
+
+                //If they chose to proceed with the delete goes through delete process and clears lists
+                if (deleteMessageBoxResult == MessageBoxResult.Yes)
+                {
+
+                    DeleteOldFiles.IsEnabled = false;//disables delete button
+                    AnalyzeProgressBar.IsIndeterminate = true;
+                    await Task.Run(() =>
+                    {
+                        action.DeleteOldFiles();//delete old files
+                    });
+                    AnalyzeProgressBar.IsIndeterminate = false;
+                    Results_Old_Files.Items.Clear();//clear the list after deleting them, makes it look like the app actually did something.
+                    FileSizeValue.Content = ""; //resets file size value label
+                    CountValue.Content = ""; //resets count label
+                    Archive_Checkbox.IsEnabled = false;
+                    Archive_Checkbox.IsChecked = false;
+                    Archive_Path.Text = "";
+                }
             }
         }
 
@@ -415,6 +482,14 @@ namespace ImageCacheUtility
                     }
                 }
             }
+        }
+        private void _ToggleArchive(object sender, RoutedEventArgs e)
+        {
+            if(Archive_Checkbox.IsChecked == true)
+            {
+                Archive_Path.IsEnabled = true;
+            }
+            else { Archive_Path.IsEnabled = false; }
         }
  
     }

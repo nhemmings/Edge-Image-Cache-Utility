@@ -23,6 +23,9 @@
                     <Button x:Name="FindOldFiles" Content="Find Files" HorizontalAlignment="Left" Margin="205,117,9,0" VerticalAlignment="Top" Width="69" Height="23" IsEnabled="False" Click="Find_Old_Files_Click"/>
                     <Button x:Name="DeleteOldFiles" Content="Delete" HorizontalAlignment="Left" Margin="285,117,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="Delete_Click"/>
                     <ListBox x:Name="AnalysisResults" HorizontalAlignment="Stretch" Margin="10,150,10,10" VerticalAlignment="Stretch"/>
+                    <CheckBox x:Name="Archive_Checkbox" Content="Archive Old Files" HorizontalAlignment="Left" Margin="386,94,0,0" VerticalAlignment="Top" IsEnabled="False" Checked="_ToggleArchive" Unchecked="_ToggleArchive"/>
+                    <Label Content="Archive Path:" HorizontalAlignment="Left" Margin="381,115,0,0" VerticalAlignment="Top"/>
+                    <TextBox x:Name="Archive_Path" HorizontalAlignment="Stretch" Height="24" Margin="464,117,10,0" TextWrapping="Wrap" VerticalAlignment="Top" IsEnabled="False"/>
 
                 </Grid>
             </TabItem>
